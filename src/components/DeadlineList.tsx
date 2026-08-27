@@ -14,7 +14,7 @@ const whenLabel = (deadline: Deadline) => {
   return formatDate(deadline.dueDate)
 }
 
-export function DeadlineList({ deadlines, limit }: { deadlines: Deadline[]; limit?: number }) {
+export function DeadlineList({ deadlines, limit, onSelect }: { deadlines: Deadline[]; limit?: number; onSelect?: (deadline: Deadline) => void }) {
   const visibleDeadlines = limit ? deadlines.slice(0, limit) : deadlines
 
   if (!visibleDeadlines.length) {
@@ -28,8 +28,8 @@ export function DeadlineList({ deadlines, limit }: { deadlines: Deadline[]; limi
 
   return (
     <div className="deadline-list">
-      {visibleDeadlines.map((deadline) => (
-        <article className="deadline-row" key={deadline.id}>
+      {visibleDeadlines.map((deadline) => {
+        const content = <>
           <span className={`deadline-icon status-${deadline.status}`}>
             {deadline.status === 'overdue' ? <Clock3 size={18} /> : <CalendarClock size={18} />}
           </span>
@@ -38,8 +38,11 @@ export function DeadlineList({ deadlines, limit }: { deadlines: Deadline[]; limi
             <p>{deadline.detail}</p>
           </div>
           <span className={`deadline-when status-text-${deadline.status}`}>{whenLabel(deadline)}</span>
-        </article>
-      ))}
+        </>
+        return onSelect
+          ? <button type="button" className="deadline-row deadline-button" key={deadline.id} onClick={() => onSelect(deadline)}>{content}</button>
+          : <article className="deadline-row" key={deadline.id}>{content}</article>
+      })}
     </div>
   )
 }

@@ -5,16 +5,19 @@ import type {
   CareEvent,
   CareEventType,
   DogProfile,
+  GroomingRecord,
   HealthData,
   MedicationRecord,
   PreventionRecord,
   VaccinationRecord,
   VetVisitRecord,
   WeightRecord,
+  TrickStatus,
 } from '../types'
 import { createDemoData } from '../lib/demo'
 import { migrateAppData } from '../lib/migrate'
 import { withRequiredModules } from '../lib/profile'
+import { levelLabels, trickLevels, tricks } from '../data/tricks'
 
 const STORAGE_KEY = 'cuccia:complete-dog-care:v1'
 
@@ -24,6 +27,7 @@ const emptyHealth: HealthData = {
   medications: [],
   visits: [],
   weights: [],
+  grooming: [],
 }
 
 const emptyData: AppData = {
@@ -31,6 +35,9 @@ const emptyData: AppData = {
   selectedCaregiverId: '',
   events: [],
   health: emptyHealth,
+  tutorialDone: false,
+  trickProgress: {},
+  badges: [],
 }
 
 const loadData = (): AppData => {
@@ -54,7 +61,7 @@ interface EventInput {
   medicationId?: string
 }
 
-type EventChanges = Pick<CareEvent, 'happenedAt' | 'caregiverId' | 'note' | 'durationMin'>
+type EventChanges = Pick<CareEvent, 'happenedAt' | 'caregiverId' | 'note' | 'durationMin' | 'medicationId'>
 
 interface AppStateValue {
   data: AppData
@@ -65,6 +72,7 @@ interface AppStateValue {
   addVaccination: (record: Omit<VaccinationRecord, 'id'>) => void
   addVisit: (record: Omit<VetVisitRecord, 'id'>) => void
   addWeight: (record: Omit<WeightRecord, 'id'>) => void
+  addGrooming: (record: Omit<GroomingRecord, 'id'>) => void
   completeOnboarding: (profile: DogProfile, health: HealthData) => void
   deleteEvent: (id: string) => void
   loadDemo: () => void
@@ -72,6 +80,9 @@ interface AppStateValue {
   selectCaregiver: (id: string) => void
   updateEvent: (id: string, changes: EventChanges) => void
   updateProfile: (profile: DogProfile) => void
+  completeTutorial: () => void
+  restartTutorial: () => void
+  setTrickStatus: (id: string, title: string, status: TrickStatus) => void
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null)
@@ -119,10 +130,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     addVaccination: (record) => addHealthRecord('vaccinations', { ...record, id: createId() }),
     addVisit: (record) => addHealthRecord('visits', { ...record, id: createId() }),
     addWeight: (record) => addHealthRecord('weights', { ...record, id: createId() }),
+    addGrooming: (record) => addHealthRecord('grooming', { ...record, id: createId() }),
     completeOnboarding: (profile, health) => setData({
       profile: { ...profile, trackedModules: withRequiredModules(profile.trackedModules.filter((module) => module !== 'needs'), profile.conditions) },
       health,
       events: [],
+      tutorialDone: false,
+      trickProgress: {},
+      badges: [],
       selectedCaregiverId: profile.caregivers[0]?.id ?? '',
     }),
     deleteEvent: (id) => {
@@ -161,6 +176,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       ...current,
       profile: { ...profile, trackedModules: withRequiredModules(profile.trackedModules.filter((module) => module !== 'needs'), profile.conditions) },
     })),
+    completeTutorial: () => setData((current) => ({ ...current, tutorialDone: true })),
+    restartTutorial: () => setData((current) => ({ ...current, tutorialDone: false })),
+    setTrickStatus: (id, title, status) => setData((current) => {
+      const learnedAt = status === 'imparato'
+        ? current.trickProgress[id]?.learnedAt ?? new Date().toISOString()
+        : undefined
+      const alreadyUnlocked = current.badges.some((badge) => badge.id === `trick-${id}`)
+      const nextProgress = { ...current.trickProgress, [id]: { status, ...(learnedAt ? { learnedAt } : {}) } }
+      const newTrickBadges = status === 'imparato' && !alreadyUnlocked
+        ? [{ id: `trick-${id}`, title, unlockedAt: learnedAt ?? new Date().toISOString() }]
+        : []
+      const newLevelBadges = trickLevels.flatMap((level) => {
+        const levelId = `level-${level}`
+        const complete = tricks.filter((trick) => trick.level === level).every((trick) => nextProgress[trick.id]?.status === 'imparato')
+        return complete && !current.badges.some((badge) => badge.id === levelId)
+          ? [{ id: levelId, title: `Livello ${levelLabels[level]} completato`, unlockedAt: new Date().toISOString() }]
+          : []
+      })
+      return {
+        ...current,
+        trickProgress: nextProgress,
+        badges: [...current.badges, ...newTrickBadges, ...newLevelBadges],
+      }
+    }),
   }), [data, toast])
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

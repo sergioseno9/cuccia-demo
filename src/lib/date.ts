@@ -4,6 +4,12 @@ const dayFormatter = new Intl.DateTimeFormat('it-IT', {
   month: 'short',
 })
 
+const accordionDayFormatter = new Intl.DateTimeFormat('it-IT', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
 export const timeFormatter = new Intl.DateTimeFormat('it-IT', {
   hour: '2-digit',
   minute: '2-digit',
@@ -50,6 +56,16 @@ export const dayLabel = (value: string) => {
   yesterday.setDate(yesterday.getDate() - 1)
   if (key === yesterday.toISOString().slice(0, 10)) return 'Ieri'
   return dayFormatter.format(new Date(`${key}T12:00:00`))
+}
+
+export const accordionDayLabel = (value: string) => {
+  const key = dayKey(value)
+  const formatted = accordionDayFormatter.format(new Date(`${key}T12:00:00`))
+  if (key === todayKey()) return `Oggi · ${formatted}`
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (key === localDateKey(yesterday)) return `Ieri · ${formatted}`
+  return formatted
 }
 
 export const ageLabel = (birthDate: string) => {

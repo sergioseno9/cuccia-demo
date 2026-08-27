@@ -47,7 +47,7 @@ export const buildDeadlines = (data: AppData): Deadline[] => {
         detail: record.product,
         dueDate,
         status: getStatus(dueDate),
-        source: 'prevention' as const,
+        source: /svermin/i.test(record.kind) ? 'deworming' as const : 'prevention' as const,
       }
     })
 
@@ -77,13 +77,11 @@ export const buildDeadlines = (data: AppData): Deadline[] => {
     }))
 
   const profileDates = data.profile ? [
-    { id: 'annual-check', title: 'Controllo annuale', detail: 'Visita di controllo', dueDate: data.profile.annualCheckDate },
-    { id: 'insurance-renewal', title: 'Rinnovo assicurazione', detail: 'Documento e copertura', dueDate: data.profile.insuranceRenewalDate },
-    { id: 'microchip-renewal', title: 'Verifica dati microchip', detail: 'Controllo dei dati registrati', dueDate: data.profile.microchipRenewalDate },
+    { id: 'annual-check', title: 'Controllo annuale', detail: 'Visita di controllo', dueDate: data.profile.annualCheckDate, source: 'visit' as const },
+    { id: 'microchip-renewal', title: 'Verifica dati microchip', detail: 'Controllo dei dati registrati', dueDate: data.profile.microchipRenewalDate, source: 'profile' as const },
   ].filter((item) => item.dueDate).map((item) => ({
     ...item,
     status: getStatus(item.dueDate),
-    source: 'profile' as const,
   })) : []
 
   return [...vaccinationDeadlines, ...preventionDeadlines, ...medicationDeadlines, ...visitDeadlines, ...profileDates]

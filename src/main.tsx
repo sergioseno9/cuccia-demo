@@ -15,6 +15,8 @@ import './styles/onboarding.css'
 import './styles/guides.css'
 import './styles/personalization.css'
 import './styles/state-cards.css'
+import './styles/accessibility.css'
+import './styles/responsive.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

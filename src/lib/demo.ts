@@ -7,7 +7,7 @@ const minutesAgo = (minutes: number) =>
 export const createDemoProfile = (): DogProfile => ({
   createdAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
   lifePhase: 'adulto',
-  trackedModules: ['outings', 'water', 'weight', 'grooming'],
+  trackedModules: ['outings', 'weight', 'grooming'],
   conditions: [],
   conditionNotes: '',
   outingIntervalHours: 3,
@@ -18,12 +18,12 @@ export const createDemoProfile = (): DogProfile => ({
   breed: 'Meticcio',
   size: 'medium',
   weight: '7.4',
-  microchip: '380260101234567',
-  vetName: 'Dott.ssa Elena Riva',
-  vetPhone: '+39 02 555 0198',
-  emergencyContact: 'Clinica Veterinaria Aurora · +39 02 555 0110',
-  groomerName: 'Bagno Bau',
-  groomerPhone: '+39 02 555 0142',
+  microchip: '000000000000000',
+  vetName: 'Veterinario demo',
+  vetPhone: '+39 000 000 0000',
+  emergencyContact: 'Clinica demo · +39 000 000 0000',
+  groomerName: 'Toelettatore demo',
+  groomerPhone: '+39 000 000 0000',
   feeding: {
     food: 'Crocchette complete',
     portion: '120 g al giorno',
@@ -99,18 +99,20 @@ export const createDemoHealth = (): HealthData => ({
     { id: 'weight-2', value: 6.6, date: isoDateFromNow(-21) },
     { id: 'weight-3', value: 7.4, date: isoDateFromNow(0) },
   ],
+  grooming: [
+    { id: 'grooming-1', title: 'Bagno e spazzolatura', lastDate: isoDateFromNow(-18), intervalWeeks: 4, notes: 'Prodotti delicati.' },
+  ],
 })
 
 export const createDemoEvents = (): CareEvent[] => [
   { id: 'event-1', type: 'note', caregiverId: 'giulia', happenedAt: minutesAgo(18), note: 'Tutto tranquillo a casa.' },
   { id: 'event-2', type: 'meal', caregiverId: 'marco', happenedAt: minutesAgo(31) },
   { id: 'event-3', type: 'walk', caregiverId: 'nonna', happenedAt: minutesAgo(76), durationMin: 32 },
-  { id: 'event-4', type: 'water', caregiverId: 'giulia', happenedAt: minutesAgo(112) },
+  { id: 'event-4', type: 'note', caregiverId: 'giulia', happenedAt: minutesAgo(112), note: 'Ha riposato tranquillo.' },
   { id: 'event-5', type: 'walk', caregiverId: 'marco', happenedAt: minutesAgo(240), durationMin: 18 },
   { id: 'event-6', type: 'meal', caregiverId: 'giulia', happenedAt: minutesAgo(275) },
   { id: 'event-7', type: 'walk', caregiverId: 'giulia', happenedAt: minutesAgo(410), durationMin: 22 },
-  { id: 'event-8', type: 'water', caregiverId: 'marco', happenedAt: minutesAgo(440) },
-  { id: 'event-9', type: 'grooming', caregiverId: 'nonna', happenedAt: minutesAgo(1_500), note: 'Spazzolatura' },
+  { id: 'event-8', type: 'note', caregiverId: 'marco', happenedAt: minutesAgo(440), note: 'Tutto regolare.' },
   { id: 'event-10', type: 'walk', caregiverId: 'marco', happenedAt: minutesAgo(1_640), durationMin: 27 },
 ]
 
@@ -119,4 +121,7 @@ export const createDemoData = (): AppData => ({
   selectedCaregiverId: 'giulia',
   events: createDemoEvents(),
   health: createDemoHealth(),
+  tutorialDone: false,
+  trickProgress: {},
+  badges: [],
 })

@@ -24,9 +24,9 @@ export const conditionLabels: Record<DogCondition, string> = {
 }
 
 export const modulePresets: Record<LifePhase, TrackedModule[]> = {
-  cucciolo: ['outings', 'water', 'grooming'],
-  adulto: ['outings', 'water', 'grooming'],
-  senior: ['outings', 'water', 'weight', 'medications', 'grooming'],
+  cucciolo: ['outings', 'grooming'],
+  adulto: ['outings', 'grooming'],
+  senior: ['outings', 'weight', 'medications', 'grooming'],
 }
 
 export const conditionModules: Record<DogCondition, TrackedModule[]> = {
@@ -37,7 +37,7 @@ export const conditionModules: Record<DogCondition, TrackedModule[]> = {
   potty_training: ['needs'],
 }
 
-export const trackedModuleIds: TrackedModule[] = ['outings', 'water', 'weight', 'medications', 'grooming']
+export const trackedModuleIds: TrackedModule[] = ['outings', 'weight', 'medications', 'grooming']
 export const conditionIds = Object.keys(conditionLabels) as DogCondition[]
 export const lifePhaseIds = Object.keys(lifePhaseLabels) as LifePhase[]
 

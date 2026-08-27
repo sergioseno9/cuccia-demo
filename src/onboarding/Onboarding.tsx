@@ -1,6 +1,6 @@
 import { Camera, ChevronLeft, ChevronRight, Dog, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { ConditionPreferences, PhasePicker, TrackingPreferences } from '../components/ProfilePreferences'
+import { ConditionPreferences, PhasePicker } from '../components/ProfilePreferences'
 import { caregiverColors } from '../data'
 import { ageLabel, todayKey } from '../lib/date'
 import { modulePresets, suggestLifePhase } from '../lib/profile'
@@ -44,7 +44,6 @@ const steps = [
   'Microchip',
   'Veterinario',
   'Chi se ne occupa',
-  'Cosa vuoi seguire',
   'Condizioni particolari',
 ]
 
@@ -95,6 +94,7 @@ export function Onboarding() {
       medications: [],
       visits: [],
       weights: weight > 0 ? [{ id: createId(), value: weight, date: todayKey() }] : [],
+      grooming: [],
     }
     completeOnboarding(finalProfile, health)
   }
@@ -114,7 +114,6 @@ export function Onboarding() {
 
     if (step === 6) return <><p className="plain-explainer">Aggiungi le persone che registreranno attività e farmaci su questo dispositivo.</p><div className="caregiver-list">{profile.caregivers.map((caregiver) => <div className="caregiver-edit-row" key={caregiver.id}><span className="avatar" style={{ background: caregiver.color }}>{caregiver.name[0]}</span><input value={caregiver.name} onChange={(event) => update('caregivers', profile.caregivers.map((item) => item.id === caregiver.id ? { ...item, name: event.target.value } : item))} /><button className="icon-button" aria-label={`Rimuovi ${caregiver.name}`} onClick={() => update('caregivers', profile.caregivers.filter((item) => item.id !== caregiver.id))}><Trash2 size={17} /></button></div>)}</div><div className="inline-add"><input value={caregiverName} onChange={(event) => setCaregiverName(event.target.value)} placeholder="Aggiungi una persona" /><button className="icon-button filled" onClick={addCaregiver} aria-label="Aggiungi caregiver"><Plus size={18} /></button></div></>
 
-    if (step === 7) return <TrackingPreferences profile={profile} onChange={setProfile} />
     return <ConditionPreferences profile={profile} onChange={setProfile} />
   }
 

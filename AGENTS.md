@@ -23,25 +23,22 @@ Expo + Supabase restano nella visione futura ma NON ora.
 
 ## Eroi e architettura prodotto
 
-Gli eroi sono, in quest’ordine: **libretto sanitario digitale**, **scadenzario in-app** e
-**Pet Card condivisibile/stampabile**. La bottom navigation mantiene quattro schermate:
+Gli eroi sono, in quest’ordine: **scadenzario in-app**, **Pet Card condivisibile/stampabile**
+e **libretto sanitario digitale**. La bottom navigation mantiene cinque schermate:
 
-- **Oggi:** scadenze imminenti, colpo d’occhio sanitario, azioni rapide opzionali, accesso
-  alla Pet Card, card di stato e infine attività della famiglia.
-- **Diario:** storico per categoria e giorno, sempre descrittivo e modificabile.
-- **Salute:** libretto manuale con vaccini, antiparassitari, sverminazione, terapie, visite,
-  peso, allergie/condizioni, microchip e scadenze.
+- **Home:** solo prossime scadenze e accesso alla Pet Card; niente logging o feed.
+- **Diario:** registrazione esplicita e opzionale, poi storico completo in accordion per giorno.
+- **Cura:** scadenze, libretto manuale e igiene/abitudini con toelettatura fuori dal Diario.
+- **Scopri:** consiglio del momento, giochi/trucchi, badge personali e guide filtrate per fase.
 - **Profilo:** dati cane, alimentazione, contatti, famiglia, fase, moduli, condizioni,
-  documenti locali, Pet Card e azzeramento dati.
-- **Guida:** non è un quinto tab. Si apre dall’icona libro e mostra solo contenuti compatibili
-  con la fase scelta.
+  documenti locali, tutorial riapribile e azzeramento dati.
 
 ## L’app cresce col cane
 
 - `lifePhase` è una scelta manuale: `cucciolo | adulto | senior`; default `adulto`.
 - La data di nascita suggerisce la fase nell’onboarding, ma non la decide.
-- Cambiare fase rimodella live preset, home e guide; i moduli restano modificabili.
-- `trackedModules`: Uscite, Acqua, Peso, Farmaci, Toelettatura/bagno.
+- Cambiare fase rimodella preset, Scopri e guide; i moduli restano modificabili dal Profilo.
+- `trackedModules`: Uscite, Peso, Farmaci, Toelettatura/bagno. `water` resta solo legacy.
 - `conditions`: `problemi_urinari`, `terapia_in_corso`, `mobilita_ridotta`,
   `peso_controllato`, `potty_training`. Sono etichette organizzative, mai diagnosi.
 - Pipì e cacca sono invisibili di default e compaiono solo con `problemi_urinari` o
@@ -50,20 +47,26 @@ Gli eroi sono, in quest’ordine: **libretto sanitario digitale**, **scadenzario
 
 ## Dati e interazioni
 
-- Quick log predefinito: Uscita, Pappa, Acqua, Farmaco, Nota; Toelettatura se attiva.
-- Tap significa “adesso”; ora, durata, caregiver e nota restano modificabili dopo.
+- La registrazione vive solo nel Diario: Uscita, Pappa e Nota; Farmaco solo con terapia attiva.
+- Pipì e cacca compaiono solo con `problemi_urinari` o `potty_training`; Acqua non compare.
+- Ogni azione apre sempre il popup di conferma con data, ora, caregiver e nota.
 - Le uscite accettano durata 15/30/45/60 minuti o personalizzata.
 - Modifiche ed eliminazioni conservano audit locale e soft-delete.
 - Lo scadenzario deriva da vaccini/richiami, antiparassitari, sverminazione, terapie,
-  visite, controllo annuale, assicurazione e verifica dati microchip.
+  visite, controllo annuale e verifica dati microchip.
+- La toelettatura è un’abitudine morbida in Cura, mai un evento quotidiano o una scadenza dura.
 - La Pet Card funziona offline e include foto, microchip, veterinario, emergenza, farmaci,
   allergie, alimentazione e note del proprietario.
+- Trucchi e badge sono locali, senza classifiche o streak; la condivisione genera un PNG.
 
 ## Onboarding
 
 Passaggi brevi e skippabili: nome/foto → nascita/fase → sesso/razza/taglia → peso →
-microchip → veterinario/contatto → caregiver → moduli → condizioni. Tutto resta modificabile.
+microchip → veterinario/contatto → caregiver → condizioni. Tutto resta modificabile.
 Usare parole comuni e spiegare in una riga termini come antiparassitari e sverminazione.
+
+Dopo l’onboarding parte un tutorial di quattro coach-mark che visita Home, Diario, Cura e
+Scopri. È skippabile, viene salvato in `localStorage` e si riapre dal Profilo.
 
 ## Principi di UX
 
@@ -72,6 +75,8 @@ Usare parole comuni e spiegare in una riga termini come antiparassitari e svermi
 - Ogni schermata ha un focus e una gerarchia visiva netta.
 - Feed in linguaggio naturale con avatar, autore e orario.
 - Card di stato mostrano fatti e aprono dettagli; non sono bottoni anonimi.
+- Mobile-first: testo base almeno 16px, etichette almeno 14px e target touch almeno 44px.
+- Verificare sempre l’esperienza a 390px e mantenerla semplice anche per utenti poco tecnologici.
 - Icone solo `lucide-react`; niente emoji nell’interfaccia.
 - Raggi 12–16px, ritmo 8px, ombre minime, focus visibile, responsive e reduced motion.
 

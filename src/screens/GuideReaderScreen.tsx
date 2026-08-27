@@ -12,13 +12,13 @@ export function GuideReaderScreen() {
   const guide = getGuide(guideId)
   const { checkedItems, toggleItem } = useGuideChecklist(guideId)
 
-  if (!guide || (guide.fase !== 'tutte' && guide.fase !== data.profile!.lifePhase)) return <Navigate to="/guida" replace />
+  if (!guide || (guide.fase !== 'tutte' && guide.fase !== data.profile!.lifePhase)) return <Navigate to="/scopri" replace />
   const related = (guide.related ?? []).map(getGuide).filter(Boolean)
 
   return (
     <article className="screen guide-reader-screen">
       <header className="guide-reader-header">
-        <button className="icon-button" onClick={() => navigate('/guida')} aria-label="Torna alle guide"><ArrowLeft size={19} /></button>
+        <button className="icon-button" onClick={() => navigate('/scopri')} aria-label="Torna a Scopri"><ArrowLeft size={19} /></button>
         <div className="guide-reader-meta"><span>Guida per cuccioli</span><span><Clock3 size={14} />Circa {guide.readingMinutes} min</span></div>
         <h1>{guide.title}</h1>
         {guide.subtitle && <p>{guide.subtitle}</p>}
@@ -28,7 +28,7 @@ export function GuideReaderScreen() {
         {guide.sections.map((section, index) => <GuideSectionView key={`${section.type}-${index}`} section={section} sectionIndex={index} checkedItems={checkedItems} onToggle={toggleItem} />)}
       </div>
 
-      {related.length > 0 && <section className="related-guides" aria-labelledby="related-title"><p className="eyebrow">Continua con calma</p><h2 id="related-title">Guide collegate</h2><div>{related.map((item) => item && <Link key={item.id} to={`/guida/${item.id}`}><span>{item.title}</span><ChevronRight size={17} /></Link>)}</div></section>}
+      {related.length > 0 && <section className="related-guides" aria-labelledby="related-title"><p className="eyebrow">Continua con calma</p><h2 id="related-title">Guide collegate</h2><div>{related.map((item) => item && <Link key={item.id} to={`/scopri/guida/${item.id}`}><span>{item.title}</span><ChevronRight size={17} /></Link>)}</div></section>}
 
       <aside className="guide-disclaimer"><BookOpen size={19} /><p>{GLOBAL_GUIDE_DISCLAIMER}</p></aside>
     </article>

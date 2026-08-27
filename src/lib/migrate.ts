@@ -1,5 +1,5 @@
 import { conditionIds, lifePhaseIds, modulePresets, trackedModuleIds, withRequiredModules } from './profile'
-import type { AppData, CareEvent, CareEventType, Caregiver, DogCondition, DogDocument, DogProfile, HealthData, LifePhase, TrackedModule } from '../types'
+import type { AchievementBadge, AppData, CareEvent, CareEventType, Caregiver, DogCondition, DogDocument, DogProfile, GroomingRecord, HealthData, LifePhase, TrackedModule, TrickProgressRecord, TrickStatus } from '../types'
 
 const eventTypes: CareEventType[] = ['meal', 'water', 'pee', 'poop', 'walk', 'sleep', 'grooming', 'medication', 'note']
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
@@ -109,17 +109,54 @@ const migrateHealth = (value: unknown): HealthData => {
     medications: records(health.medications),
     visits: records(health.visits),
     weights: records(health.weights),
+    grooming: records(health.grooming),
   }
 }
+
+const trickStatuses: TrickStatus[] = ['da_imparare', 'in_corso', 'imparato']
+
+const migrateTrickProgress = (value: unknown) => {
+  if (!isRecord(value)) return {}
+  return Object.entries(value).reduce<Record<string, TrickProgressRecord>>((result, [id, progress]) => {
+    if (!isRecord(progress) || !trickStatuses.includes(progress.status as TrickStatus)) return result
+    result[id] = {
+      status: progress.status as TrickStatus,
+      ...(optionalText(progress.learnedAt) ? { learnedAt: optionalText(progress.learnedAt) } : {}),
+    }
+    return result
+  }, {})
+}
+
+const migrateBadges = (value: unknown): AchievementBadge[] => Array.isArray(value)
+  ? value.filter(isRecord).map((badge) => ({
+    id: text(badge.id) || createId(),
+    title: text(badge.title) || 'Traguardo',
+    unlockedAt: text(badge.unlockedAt) || new Date().toISOString(),
+  }))
+  : []
 
 export const migrateAppData = (value: unknown): AppData => {
   const source = isRecord(value) ? value : {}
   const profile = migrateProfile(source.profile)
   const selected = text(source.selectedCaregiverId)
+  const events = migrateEvents(source.events)
+  const health = migrateHealth(source.health)
+  const legacyGrooming: GroomingRecord[] = health.grooming.length ? [] : events
+    .filter((event) => event.type === 'grooming' && !event.deletedAt)
+    .map((event) => ({
+      id: `migrated-${event.id}`,
+      title: event.note || 'Toelettatura / bagno',
+      lastDate: event.happenedAt.slice(0, 10),
+      intervalWeeks: 0,
+      notes: 'Importato dal Diario precedente.',
+    }))
   return {
     profile,
-    events: migrateEvents(source.events),
-    health: migrateHealth(source.health),
+    events,
+    health: { ...health, grooming: [...health.grooming, ...legacyGrooming] },
+    tutorialDone: typeof source.tutorialDone === 'boolean' ? source.tutorialDone : false,
+    trickProgress: migrateTrickProgress(source.trickProgress),
+    badges: migrateBadges(source.badges),
     selectedCaregiverId: profile?.caregivers.some((caregiver) => caregiver.id === selected)
       ? selected
       : profile?.caregivers[0]?.id ?? '',

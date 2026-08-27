@@ -1,0 +1,15 @@
+@media (max-width: 390px) {
+  .screen { padding-inline: 16px; }
+  .diary-header { align-items: flex-start; flex-direction: column; }
+  .register-main-button { width: 100%; }
+  .home-pet-card { grid-template-columns: 52px minmax(0, 1fr); padding: 20px; }
+  .home-pet-card-mark { width: 52px; height: 52px; }
+  .home-pet-card .button-primary { grid-column: 1 / -1; width: 100%; }
+  .deadline-row { grid-template-columns: 40px minmax(0, 1fr); }
+  .deadline-when { grid-column: 2; max-width: none; text-align: left; }
+  .health-section-title { align-items: flex-start; flex-wrap: wrap; }
+  .care-add-button { min-width: auto; padding-inline: 11px; font-size: 14px; }
+  .trick-grid { grid-template-columns: 1fr; }
+  .trick-card { min-height: 142px; }
+  .tutorial-replay-section { align-items: stretch; flex-direction: column; }
+}

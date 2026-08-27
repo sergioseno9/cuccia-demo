@@ -133,12 +133,34 @@ export interface WeightRecord {
   date: string
 }
 
+export interface GroomingRecord {
+  id: string
+  title: string
+  lastDate: string
+  intervalWeeks: number
+  notes: string
+}
+
 export interface HealthData {
   vaccinations: VaccinationRecord[]
   preventions: PreventionRecord[]
   medications: MedicationRecord[]
   visits: VetVisitRecord[]
   weights: WeightRecord[]
+  grooming: GroomingRecord[]
+}
+
+export type TrickStatus = 'da_imparare' | 'in_corso' | 'imparato'
+
+export interface TrickProgressRecord {
+  status: TrickStatus
+  learnedAt?: string
+}
+
+export interface AchievementBadge {
+  id: string
+  title: string
+  unlockedAt: string
 }
 
 export interface AppData {
@@ -146,6 +168,9 @@ export interface AppData {
   selectedCaregiverId: string
   events: CareEvent[]
   health: HealthData
+  tutorialDone: boolean
+  trickProgress: Record<string, TrickProgressRecord>
+  badges: AchievementBadge[]
 }
 
 export type DeadlineStatus = 'overdue' | 'upcoming' | 'ok'
@@ -156,5 +181,5 @@ export interface Deadline {
   detail: string
   dueDate: string
   status: DeadlineStatus
-  source: 'vaccination' | 'prevention' | 'medication' | 'visit' | 'profile'
+  source: 'vaccination' | 'prevention' | 'deworming' | 'medication' | 'visit' | 'profile'
 }

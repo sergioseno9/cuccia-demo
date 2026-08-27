@@ -1,4 +1,4 @@
-import { AlertTriangle, BadgeInfo, CalendarDays, Edit3, Phone, RotateCcw, Scissors, Shield, SlidersHorizontal, Stethoscope, Utensils, UsersRound } from 'lucide-react'
+import { AlertTriangle, BadgeInfo, CalendarDays, CircleHelp, Edit3, Phone, RotateCcw, Scissors, Shield, SlidersHorizontal, Stethoscope, Utensils, UsersRound } from 'lucide-react'
 import { useState } from 'react'
 import { DocumentManager } from '../components/DocumentManager'
 import { PetCard } from '../components/PetCard'
@@ -11,7 +11,7 @@ const sexLabel = { male: 'Maschio', female: 'Femmina', unknown: 'Non indicato' }
 const sizeLabel = { small: 'Piccola', medium: 'Media', large: 'Grande' }
 
 export function ProfileScreen() {
-  const { data, resetAll } = useAppState()
+  const { data, resetAll, restartTutorial } = useAppState()
   const [editing, setEditing] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const profile = data.profile!
@@ -35,10 +35,12 @@ export function ProfileScreen() {
 
       <DocumentManager />
 
+      <section className="profile-section tutorial-replay-section"><div><CircleHelp size={23} /><div><strong>Come funziona Cuccia</strong><p>Rivedi i quattro passaggi iniziali quando vuoi.</p></div></div><button className="button-secondary" onClick={restartTutorial}>Rivedi tutorial</button></section>
+
       <section className="reset-section"><div><RotateCcw size={19} /><div><strong>Azzera i dati locali</strong><p>Rimuove profilo, salute e diario solo da questo browser.</p></div></div>{confirmReset ? <div className="reset-actions"><button className="button-secondary" onClick={() => setConfirmReset(false)}>Annulla</button><button className="danger-button" onClick={resetAll}>Conferma azzeramento</button></div> : <button className="text-button danger-text" onClick={() => setConfirmReset(true)}>Azzera</button>}</section>
 
       {editing && <ProfileEditor onClose={() => setEditing(false)} />}
-      <p className="profile-footnote">Dati e documenti restano in questo browser. Nessun caricamento automatico.</p>
+      <p className="profile-footnote">Dati e documenti restano in questo browser. Per il prototipo usa solo contenuti demo o non sensibili.</p>
     </div>
   )
 }

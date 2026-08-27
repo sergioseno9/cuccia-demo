@@ -1,65 +1,65 @@
-import { CalendarDays, ChevronDown } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronUp, Clock3, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { actionLabels, feedCopy } from '../data'
-import { dayKey, dayLabel, timeFormatter, todayKey } from '../lib/date'
-import { useAppState } from '../state/AppState'
-import type { CareEvent } from '../types'
+import { EventFormDialog } from '../components/EventFormDialog'
 import { EventIcon } from '../components/EventIcon'
-import { EventEditor } from '../components/EventEditor'
+import { Modal } from '../components/Modal'
+import { actionLabels, feedCopy } from '../data'
+import { accordionDayLabel, dayKey, relativeAgo, timeFormatter, todayKey } from '../lib/date'
+import { useAppState } from '../state/AppState'
+import type { CareEvent, CareEventType } from '../types'
 
-type FilterId = 'all' | 'walk' | 'meal' | 'water' | 'bath' | 'grooming' | 'note'
-
-const baseFilters: { id: FilterId; label: string }[] = [
-  { id: 'all', label: 'Tutte' },
-  { id: 'walk', label: 'Passeggiate' },
-  { id: 'meal', label: 'Pappa' },
-  { id: 'water', label: 'Acqua' },
-  { id: 'grooming', label: 'Toelettatura/bagno' },
-  { id: 'note', label: 'Note' },
-]
-
-const matchesFilter = (event: CareEvent, filter: FilterId) => {
-  if (filter === 'all') return true
-  if (filter === 'bath') return event.type === 'pee' || event.type === 'poop'
-  return event.type === filter
+function RegisterPicker({ actions, onSelect, onClose }: { actions: CareEventType[]; onSelect: (type: CareEventType) => void; onClose: () => void }) {
+  return <Modal title="Cosa vuoi registrare?" onClose={onClose}><p className="form-intro">Scegli un’attività. Prima di salvarla potrai controllare data, ora, durata e persona.</p><div className="register-action-grid">{actions.map((type) => <button key={type} onClick={() => onSelect(type)}><EventIcon type={type} size={24} /><span>{type === 'walk' ? 'Uscita / passeggiata' : actionLabels[type]}</span></button>)}</div></Modal>
 }
 
 export function DiaryScreen() {
   const { data } = useAppState()
-  const [filter, setFilter] = useState<FilterId>('all')
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [formType, setFormType] = useState<CareEventType | null>(null)
   const [editing, setEditing] = useState<CareEvent | null>(null)
+  const [openDays, setOpenDays] = useState<Set<string>>(() => new Set([todayKey()]))
   const profile = data.profile!
   const needsEnabled = profile.trackedModules.includes('needs')
-  const filters = needsEnabled ? [...baseFilters.slice(0, 4), { id: 'bath' as const, label: 'Pipì e cacca' }, ...baseFilters.slice(4)] : baseFilters
-  const visibleEvents = useMemo(() => [...data.events].filter((event) => !event.deletedAt && event.type !== 'sleep' && (needsEnabled || (event.type !== 'pee' && event.type !== 'poop')) && matchesFilter(event, filter)).sort((a, b) => b.happenedAt.localeCompare(a.happenedAt)), [data.events, filter, needsEnabled])
+  const hasActiveMedication = data.health.medications.some((record) => record.active)
+  const actions: CareEventType[] = ['walk', 'meal', 'note', ...(hasActiveMedication ? ['medication' as const] : []), ...(needsEnabled ? ['pee' as const, 'poop' as const] : [])]
+  const dailyTypes: CareEventType[] = ['walk', 'meal', 'medication', 'note', ...(needsEnabled ? ['pee' as const, 'poop' as const] : [])]
+  const visibleEvents = useMemo(() => data.events.filter((event) => !event.deletedAt && dailyTypes.includes(event.type)).sort((a, b) => b.happenedAt.localeCompare(a.happenedAt)), [data.events, needsEnabled])
   const groups = useMemo(() => visibleEvents.reduce<Record<string, CareEvent[]>>((result, event) => {
     const key = dayKey(event.happenedAt)
     result[key] = [...(result[key] ?? []), event]
     return result
-  }, {}), [visibleEvents])
-  const todayEvents = visibleEvents.filter((event) => dayKey(event.happenedAt) === todayKey())
-  const walkMinutes = todayEvents.reduce((total, event) => total + (event.durationMin ?? 0), 0)
-  const activeLabel = filters.find((item) => item.id === filter)?.label ?? 'Attività'
+  }, { [todayKey()]: [] }), [visibleEvents])
+  const latestWalk = visibleEvents.find((event) => event.type === 'walk')
+
+  const toggleDay = (date: string) => setOpenDays((current) => {
+    const next = new Set(current)
+    next.has(date) ? next.delete(date) : next.add(date)
+    return next
+  })
+
+  const selectAction = (type: CareEventType) => {
+    setPickerOpen(false)
+    setFormType(type)
+  }
 
   return (
     <div className="screen diary-screen">
-      <header className="screen-header"><p className="eyebrow">Storico quotidiano</p><h1>Diario</h1><p>Ogni cosa al suo posto, senza trasformare la giornata in una lista di obblighi.</p></header>
-      <div className="filter-strip" role="tablist" aria-label="Filtra il diario">{filters.map((item) => <button role="tab" aria-selected={filter === item.id} className={filter === item.id ? 'is-active' : ''} onClick={() => setFilter(item.id)} key={item.id}>{item.label}</button>)}</div>
+      <header className="screen-header diary-header"><div><p className="eyebrow">Attività quotidiane</p><h1>Diario</h1><p>Registra solo ciò che è utile alla vostra organizzazione.</p></div><button id="tutorial-register" className="button-primary register-main-button" onClick={() => setPickerOpen(true)}><Plus size={22} /> Registra</button></header>
 
-      <section className="diary-stats" aria-label={`Statistiche ${activeLabel}`}>
-        <div><span>{activeLabel} oggi</span><strong>{todayEvents.length}</strong></div>
-        {filter === 'walk' && <div><span>Tempo totale</span><strong>{walkMinutes} min</strong></div>}
-        {filter === 'all' && <div><span>Passeggiate</span><strong>{todayEvents.filter((event) => event.type === 'walk').length}</strong></div>}
-        {filter === 'bath' && <div><span>Pipì · cacca</span><strong>{todayEvents.filter((event) => event.type === 'pee').length} · {todayEvents.filter((event) => event.type === 'poop').length}</strong></div>}
-      </section>
+      {profile.outingIntervalHours && latestWalk && <div className="diary-soft-nudge"><Clock3 size={21} /><p>{profile.name} di solito esce ogni ~{profile.outingIntervalHours} h · ultima {relativeAgo(latestWalk.happenedAt)}. È solo il ritmo impostato da te.</p></div>}
 
-      {visibleEvents.length ? <div className="timeline">{Object.entries(groups).map(([date, events]) => <section className="timeline-day" key={date}><h2>{dayLabel(date)}</h2><div>{events.map((event) => {
-        const author = profile.caregivers.find((caregiver) => caregiver.id === event.caregiverId) ?? profile.caregivers[0]
-        const editor = profile.caregivers.find((caregiver) => caregiver.id === event.editedBy)
-        return <button type="button" className="timeline-item timeline-button" key={event.id} onClick={() => setEditing(event)}><span className="timeline-icon"><EventIcon type={event.type} size={18} /></span><div className="timeline-copy"><strong>{actionLabels[event.type]}</strong><p>{author.name} {feedCopy[event.type]} · {timeFormatter.format(new Date(event.happenedAt))}</p>{(event.note || event.durationMin) && <small>{event.note ?? `${event.durationMin} min`}</small>}{event.editedAt && <small>Modificato{editor ? ` da ${editor.name}` : ''}</small>}</div><span className="avatar small-avatar" style={{ background: author.color }}>{author.name[0]}</span></button>
-      })}</div></section>)}</div> : <div className="empty-state diary-empty"><CalendarDays size={24} /><div><strong>Ancora nessuna attività in questa sezione</strong><p>Quando vorrai, segna la prima dalla schermata Oggi.</p></div></div>}
-      <button className="load-more" disabled><ChevronDown size={17} /> Tutto lo storico è qui</button>
-      {editing && <EventEditor event={editing} onClose={() => setEditing(null)} />}
+      <div className="day-accordion">{Object.entries(groups).map(([date, events]) => {
+        const isOpen = openDays.has(date)
+        return <section className="day-group" key={date}><button className="day-group-toggle" onClick={() => toggleDay(date)} aria-expanded={isOpen}><span><CalendarDays size={21} />{accordionDayLabel(date)}</span><span>{events.length} {events.length === 1 ? 'voce' : 'voci'}{isOpen ? <ChevronUp size={21} /> : <ChevronDown size={21} />}</span></button>{isOpen && <div className="day-group-content">{events.length ? events.map((event) => {
+          const author = profile.caregivers.find((caregiver) => caregiver.id === event.caregiverId) ?? profile.caregivers[0]
+          const editor = profile.caregivers.find((caregiver) => caregiver.id === event.editedBy)
+          return <button className="diary-entry" key={event.id} onClick={() => setEditing(event)}><span className="diary-entry-icon"><EventIcon type={event.type} size={21} /></span><div><strong>{actionLabels[event.type]}</strong><p>{author.name} {feedCopy[event.type]} · {timeFormatter.format(new Date(event.happenedAt))}</p>{(event.durationMin || event.note) && <small>{event.durationMin ? `${event.durationMin} min${event.note ? ` · ${event.note}` : ''}` : event.note}</small>}{event.editedAt && <small>Modificato{editor ? ` da ${editor.name}` : ''}</small>}</div><span className="avatar" style={{ background: author.color }}>{author.name[0]}</span></button>
+        }) : <div className="empty-state"><CalendarDays size={24} /><div><strong>Ancora nessuna voce oggi</strong><p>Usa “Registra” solo quando ti serve.</p></div></div>}</div>}</section>
+      })}</div>
+
+      {pickerOpen && <RegisterPicker actions={actions} onSelect={selectAction} onClose={() => setPickerOpen(false)} />}
+      {formType && <EventFormDialog type={formType} onClose={() => setFormType(null)} />}
+      {editing && <EventFormDialog type={editing.type} event={editing} onClose={() => setEditing(null)} />}
     </div>
   )
 }

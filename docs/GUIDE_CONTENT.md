@@ -21,22 +21,24 @@ paywall o suggerimenti clinici.
 
 La rilevanza usa soltanto `dog.lifePhase`, scelta manualmente dall’utente. La data di nascita
 può suggerire la fase, ma `profile.createdAt` non entra mai nella selezione. In Adulto o Senior
-non mostrare card forzate se non esiste una guida con fase compatibile.
+non mostrare guide forzate se non esiste un contenuto con fase compatibile. Guide, giochi e
+consigli vivono nel tab **Scopri**, separati da Home, Diario e Cura.
 
 ---
 
 ## 1. Dove vive nell'app (placement)
 
-Niente quinto tab. La Guida entra in tre punti:
+La Guida vive nel tab **Scopri**, dopo consiglio del momento e giochi/trucchi:
 
-1. **Hub Guida** — icona "libro" nell'header di *Oggi* → apre la lista delle mini-guide.
-2. **"Niente panico"** (feature-firma) — in *Oggi*, in modalità cucciolo, un blocco con
-   4 pulsanti-triage: **Notte · Pipì in casa · Morsi · Caos** → apre la guida giusta.
-3. **Card contestuale** — in *Oggi*, una "Guida del momento" scelta in automatico (regole al §4).
+1. **Lista Guide** — mostra soltanto contenuti compatibili con la fase del cane.
+2. **"Niente panico"** — nella stessa sezione e solo in modalità Cucciolo: quattro pulsanti
+   **Notte · Pipì in casa · Morsi · Caos** aprono la guida pertinente.
+3. **Collegamenti contestuali** — un consiglio del momento può aprire una guida o un trucco,
+   ma Home resta riservata a scadenze e Pet Card.
 
-Schermata **Lettore guida**: titolo problema-first, tempo di lettura, sezioni scrollabili,
-guide collegate in fondo. Testo grande, molto respiro, coerente col brand (Fraunces titoli,
-Jakarta corpo).
+La schermata **Lettore guida** usa titolo problema-first, tempo di lettura, sezioni
+scrollabili e guide collegate. Testo base almeno 16px, target touch almeno 44px, molto respiro,
+Fraunces per i titoli e Plus Jakarta Sans per il corpo.
 
 ---
 
@@ -79,20 +81,16 @@ Caos generale  → 'routine'
 
 ---
 
-## 4. Consegna contestuale (card "Guida del momento" in Oggi)
+## 4. Pertinenza in Scopri
 
-Prima regola: una guida è candidabile soltanto se `fase` coincide con la `lifePhase` scelta
-oppure vale `tutte`. La data di creazione del profilo non conta mai. Il vecchio id
-`primo-giorno` non deve essere usato: la guida corretta è `primi-mesi`.
+Una guida è visibile soltanto se `fase` coincide con la `lifePhase` scelta oppure vale
+`tutte`. La data di creazione del profilo non conta mai. Il vecchio id `primo-giorno` non
+deve essere usato: la guida corretta è `primi-mesi`.
 
-Per la fase Cucciolo, in ordine di priorità:
-
-1. Ora ≥ 20:00 → **'notti-tranquille'**
-2. ≥ 3 eventi "incidente/pipì" registrati oggi → **'stop-pipi'**
-3. ≥ 3 eventi "morso" registrati oggi → **'morsi'**
-4. Default → **'puppy-blues'**
-
-Per Adulto e Senior, in V1, nessuna card viene forzata se manca una guida pertinente.
+Il **Consiglio del momento** è un dato separato in `src/data/tips.ts`: può ruotare in base a
+data, stagione e fase e può collegarsi a una guida o un trucco. Non usa eventi sanitari per
+fare inferenze cliniche. Per Adulto e Senior non viene forzata alcuna guida se manca contenuto
+pertinente.
 
 ---
 
