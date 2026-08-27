@@ -1,0 +1,28 @@
+{
+  "name": "cuccia-fase-0",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "@fontsource/fraunces": "latest",
+    "@fontsource/plus-jakarta-sans": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "gh-pages": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}

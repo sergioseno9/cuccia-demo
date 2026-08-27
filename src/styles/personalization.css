@@ -1,0 +1,44 @@
+.phase-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.phase-picker button { min-height: 78px; display: grid; align-content: center; gap: 6px; padding: 11px; border: 1px solid var(--line); border-radius: 14px; background: #fffaf5; text-align: left; cursor: pointer; }
+.phase-picker button span { font: 600 16px/1 'Fraunces', serif; }
+.phase-picker button small { color: var(--taupe); font-size: 8px; line-height: 1.35; }
+.phase-picker button.is-active { border-color: var(--clay); background: rgba(217, 105, 74, 0.09); box-shadow: inset 0 0 0 1px rgba(217, 105, 74, 0.2); }
+
+.tracking-preferences { display: grid; gap: 18px; }
+.preferences-heading { display: flex; align-items: flex-start; gap: 10px; color: var(--clay); }
+.preferences-heading strong { display: block; color: var(--ink); font: 600 19px/1.1 'Fraunces', serif; }
+.preferences-heading p { margin: 5px 0 0; color: var(--taupe); font-size: 9px; line-height: 1.5; }
+.toggle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.toggle-grid button { min-height: 63px; display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 6px; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: #fffaf5; text-align: left; cursor: pointer; }
+.toggle-grid button > span { width: 21px; height: 21px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 7px; color: transparent; }
+.toggle-grid button strong { font-size: 9px; }
+.toggle-grid button small { grid-column: 1 / -1; color: var(--sage); font-size: 7px; font-weight: 700; }
+.toggle-grid button.is-active { border-color: rgba(143, 160, 131, 0.5); background: rgba(143, 160, 131, 0.12); }
+.toggle-grid button.is-active > span { border-color: var(--sage); background: var(--sage); color: var(--cream); }
+.conditions-picker { padding-top: 17px; border-top: 1px solid var(--line); }
+.conditions-picker > strong { display: block; font-size: 10px; }
+.conditions-picker > strong small { color: var(--taupe); font-weight: 500; }
+.conditions-picker > p { margin: 4px 0 11px; color: var(--taupe); font-size: 8px; }
+.conditions-picker > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.conditions-picker label { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fffaf5; font-size: 8px; font-weight: 700; cursor: pointer; }
+.conditions-picker label input { position: absolute; opacity: 0; }
+.conditions-picker label > span { width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; background: var(--sand); color: transparent; }
+.conditions-picker label.is-active { border-color: rgba(217, 105, 74, 0.35); background: rgba(217, 105, 74, 0.08); }
+.conditions-picker label.is-active > span { background: var(--clay); color: var(--cream); }
+.interval-field { padding: 14px; border-radius: 13px; background: var(--sand); }
+.editor-preferences { padding: 17px; border-radius: 16px; background: rgba(239, 227, 209, 0.44); }
+.editor-preferences > h3 { margin-bottom: 0; font: 600 21px 'Fraunces', serif; }
+.editor-preferences .tracking-preferences { margin-top: 22px; }
+
+.tracking-summary { padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: #fffaf5; }
+.tracking-summary-phase { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 12px; background: var(--ink); color: var(--cream); }
+.tracking-summary-phase span { color: rgba(251, 246, 238, 0.62); font-size: 8px; }
+.tracking-summary-phase strong { font: 600 18px 'Fraunces', serif; }
+.tracking-chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0; }
+.tracking-chip-list span { padding: 6px 9px; border-radius: 999px; background: var(--sand); color: var(--taupe); font-size: 8px; font-weight: 700; }
+.profile-condition-list { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+.profile-condition-list strong { font-size: 9px; }
+.profile-condition-list p, .profile-interval { margin: 4px 0 0; color: var(--taupe); font-size: 8px; line-height: 1.5; }
+.tracking-summary > .button-secondary { margin-top: 15px; }
+
+@media (max-width: 390px) { .phase-picker { grid-template-columns: 1fr; } .phase-picker button { min-height: 62px; } .toggle-grid { grid-template-columns: repeat(2, 1fr); } }
