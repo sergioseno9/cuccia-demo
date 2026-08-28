@@ -17,6 +17,7 @@ paywall o sincronizzazione tra dispositivi.
 - **Profilo:** dati pet, alimentazione, contatti, famiglia, moduli, documenti e Pet Card.
 - **Backup:** copia automatica a ogni modifica, export JSON re-importabile e PDF leggibile.
 - **Onboarding:** nove passaggi specie-first e tutorial iniziale riapribile dal Profilo.
+- **Interfaccia minimale:** canvas bianco caldo, foto pet, card leggere e cinque sezioni ordinate.
 
 Cuccia non formula diagnosi, score o consigli veterinari personalizzati. I dati sanitari
 sono sempre inseriti e confermati a mano.
@@ -56,6 +57,10 @@ La build statica viene creata in `dist/`.
 
 Nel Profilo, **Esporta tutto in JSON** scarica famiglia, tutti i pet, Diario, audit, Cura,
 documenti e progressi. **Importa JSON** ripristina un backup dopo conferma.
+
+Foto e allegati immagine vengono ridimensionati e compressi nel browser prima del salvataggio.
+Se compare l’avviso di spazio quasi esaurito, esporta subito il JSON: la modifica corrente
+resta aperta nell’app, ma il browser potrebbe non riuscire a conservarla alla chiusura.
 
 **Crea PDF leggibile** prepara un riepilogo stampabile di tutti i pet. Il PDF serve per
 consultazione e condivisione; per un ripristino completo usa sempre il JSON.

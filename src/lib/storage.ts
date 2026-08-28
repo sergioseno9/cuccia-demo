@@ -13,6 +13,16 @@ export interface StorageLike {
   removeItem: (key: string) => void
 }
 
+export class StorageQuotaError extends Error {
+  constructor() {
+    super('Spazio quasi esaurito, esporta un backup.')
+    this.name = 'StorageQuotaError'
+  }
+}
+
+const isQuotaError = (error: unknown) => error instanceof DOMException
+  && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')
+
 const parsePrimary = (raw: string | null) => raw ? migrateAppData(JSON.parse(raw) as unknown) : null
 
 export const loadAppData = (storage: StorageLike = localStorage): AppData => {
@@ -34,9 +44,15 @@ export const loadAppData = (storage: StorageLike = localStorage): AppData => {
 
 export const persistAppData = (data: AppData, storage: StorageLike = localStorage) => {
   const previous = storage.getItem(STORAGE_KEY)
-  if (previous) storage.setItem(PREVIOUS_STORAGE_KEY, previous)
-  storage.setItem(BACKUP_STORAGE_KEY, createBackupJson(data))
-  storage.setItem(STORAGE_KEY, JSON.stringify(data))
+  const serialized = JSON.stringify(data)
+  try {
+    storage.setItem(STORAGE_KEY, serialized)
+    if (previous && previous !== serialized) storage.setItem(PREVIOUS_STORAGE_KEY, previous)
+    storage.setItem(BACKUP_STORAGE_KEY, createBackupJson(data))
+  } catch (error) {
+    if (isQuotaError(error)) throw new StorageQuotaError()
+    throw error
+  }
 }
 
 export const clearStoredAppData = (storage: StorageLike = localStorage) => {

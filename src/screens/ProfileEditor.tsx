@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { Modal } from '../components/Modal'
 import { ConditionPreferences, PhasePicker, TrackingPreferences } from '../components/ProfilePreferences'
 import { caregiverColors } from '../data'
+import { prepareLocalFile } from '../lib/images'
 import { useAppState } from '../state/AppState'
 import type { Caregiver, PetProfile } from '../types'
+import { PetAvatar } from '../components/PetAvatar'
 
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
@@ -13,16 +15,20 @@ export function ProfileEditor({ onClose }: { onClose: () => void }) {
   const [draft, setDraft] = useState<PetProfile | null>(profile)
   const [familyDraft, setFamilyDraft] = useState<Caregiver[]>(caregivers)
   const [caregiverName, setCaregiverName] = useState('')
+  const [photoError, setPhotoError] = useState('')
   if (!draft) return null
 
   const update = <Key extends keyof PetProfile>(key: Key, value: PetProfile[Key]) =>
     setDraft((current) => current ? { ...current, [key]: value } : current)
 
-  const handlePhoto = (file?: File) => {
-    if (!file || file.size > 1_200_000) return
-    const reader = new FileReader()
-    reader.onload = () => update('photo', String(reader.result ?? ''))
-    reader.readAsDataURL(file)
+  const handlePhoto = async (file?: File) => {
+    if (!file) return
+    try {
+      update('photo', await prepareLocalFile(file, 1000))
+      setPhotoError('')
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : 'Impossibile preparare la foto.')
+    }
   }
 
   const addCaregiver = () => {
@@ -43,7 +49,7 @@ export function ProfileEditor({ onClose }: { onClose: () => void }) {
 
   return <Modal title={`Modifica ${draft.name}`} onClose={onClose}>
     <div className="profile-editor-scroll">
-      <label className="photo-editor"><span className="dog-avatar large-dog-avatar">{draft.photo ? <img src={draft.photo} alt="" /> : <img src="./dog-icon.svg" alt="" />}</span><span className="button-secondary"><Camera size={16} /> Cambia foto</span><input type="file" accept="image/*" onChange={(event) => handlePhoto(event.target.files?.[0])} /></label>
+      <label className="photo-editor"><PetAvatar className="large-dog-avatar" name={draft.name} photo={draft.photo} species={draft.species} /><span className="button-secondary"><Camera size={16} /> Cambia foto</span><input type="file" accept="image/*" onChange={(event) => void handlePhoto(event.target.files?.[0])} />{photoError && <span className="field-error">{photoError}</span>}</label>
 
       <div className="editor-group"><h3>Dati di {draft.name}</h3><p className="section-explainer">Specie: {draft.species}. Per evitare errori nella scheda, la specie non cambia dopo la creazione.</p><div className="form-grid two-columns"><label className="field"><span>Nome</span><input value={draft.name} onChange={(event) => update('name', event.target.value)} /></label><label className="field"><span>Data di nascita</span><input type="date" value={draft.birthDate} onChange={(event) => update('birthDate', event.target.value)} /></label></div><div className="form-grid two-columns"><label className="field"><span>Sesso</span><select value={draft.sex} onChange={(event) => update('sex', event.target.value as PetProfile['sex'])}><option value="male">Maschio</option><option value="female">Femmina</option><option value="unknown">Non indicato</option></select></label><label className="field"><span>Taglia</span><select value={draft.size} onChange={(event) => update('size', event.target.value as PetProfile['size'])}><option value="small">Piccola</option><option value="medium">Media</option><option value="large">Grande</option></select></label></div><div className="form-grid two-columns"><label className="field"><span>Razza</span><input value={draft.breed} onChange={(event) => update('breed', event.target.value)} /></label><label className="field"><span>Peso kg</span><input type="number" step="0.1" value={draft.weight} onChange={(event) => update('weight', event.target.value)} /></label></div>{draft.species === 'gatto' && <label className="field"><span>Vita in casa o fuori</span><select value={draft.indoorOutdoor} onChange={(event) => update('indoorOutdoor', event.target.value as PetProfile['indoorOutdoor'])}><option value="indoor">In casa</option><option value="outdoor">All’aperto</option><option value="both">Casa e fuori</option></select></label>}</div>
 

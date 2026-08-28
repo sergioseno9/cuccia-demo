@@ -1,4 +1,4 @@
-import { CalendarClock, Check, Clock3 } from 'lucide-react'
+import { CalendarDays, Check, FileCheck2, Pill, ShieldCheck, Stethoscope, Syringe } from 'lucide-react'
 import { formatDate, timeFormatter, todayKey } from '../lib/date'
 import type { Deadline } from '../types'
 
@@ -14,7 +14,16 @@ const whenLabel = (deadline: Deadline) => {
   return formatDate(deadline.dueDate)
 }
 
-export function DeadlineList({ deadlines, limit, onSelect }: { deadlines: Deadline[]; limit?: number; onSelect?: (deadline: Deadline) => void }) {
+const deadlineIcon = (source: Deadline['source']) => {
+  if (source === 'vaccination') return <Syringe size={21} />
+  if (source === 'prevention' || source === 'deworming') return <ShieldCheck size={21} />
+  if (source === 'medication') return <Pill size={21} />
+  if (source === 'visit') return <Stethoscope size={21} />
+  if (source === 'profile') return <FileCheck2 size={21} />
+  return <CalendarDays size={21} />
+}
+
+export function DeadlineList({ compact = false, deadlines, limit, onSelect }: { compact?: boolean; deadlines: Deadline[]; limit?: number; onSelect?: (deadline: Deadline) => void }) {
   const visibleDeadlines = limit ? deadlines.slice(0, limit) : deadlines
 
   if (!visibleDeadlines.length) {
@@ -27,15 +36,13 @@ export function DeadlineList({ deadlines, limit, onSelect }: { deadlines: Deadli
   }
 
   return (
-    <div className="deadline-list">
+    <div className={`deadline-list ${compact ? 'is-compact' : ''}`}>
       {visibleDeadlines.map((deadline) => {
         const content = <>
-          <span className={`deadline-icon status-${deadline.status}`}>
-            {deadline.status === 'overdue' ? <Clock3 size={18} /> : <CalendarClock size={18} />}
-          </span>
+          <span className={`deadline-icon deadline-source-${deadline.source}`}>{deadlineIcon(deadline.source)}</span>
           <div>
             <strong>{deadline.title}</strong>
-            <p>{deadline.detail}</p>
+            {!compact && <p>{deadline.detail}</p>}
           </div>
           <span className={`deadline-when status-text-${deadline.status}`}>{whenLabel(deadline)}</span>
         </>

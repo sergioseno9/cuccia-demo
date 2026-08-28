@@ -1,8 +1,10 @@
 import { Camera, Cat, Check, ChevronLeft, ChevronRight, Dog, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { ConditionPreferences, PhasePicker } from '../components/ProfilePreferences'
+import { PetAvatar } from '../components/PetAvatar'
 import { caregiverColors } from '../data'
 import { createEmptyHealth } from '../lib/migrate'
+import { prepareLocalFile } from '../lib/images'
 import { createEmptyProfile, modulePresets, suggestLifePhase } from '../lib/profile'
 import { useAppState } from '../state/AppState'
 import type { Caregiver, PetProfile, PetSpecies } from '../types'
@@ -18,6 +20,7 @@ export function Onboarding() {
     { id: createId(), name: '', role: 'Famiglia', color: caregiverColors[0] },
   ])
   const [caregiverName, setCaregiverName] = useState('')
+  const [photoError, setPhotoError] = useState('')
 
   const update = <Key extends keyof PetProfile>(key: Key, value: PetProfile[Key]) =>
     setProfile((current) => ({ ...current, [key]: value }))
@@ -37,11 +40,14 @@ export function Onboarding() {
     }))
   }
 
-  const handlePhoto = (file?: File) => {
-    if (!file || file.size > 1_200_000) return
-    const reader = new FileReader()
-    reader.onload = () => update('photo', String(reader.result ?? ''))
-    reader.readAsDataURL(file)
+  const handlePhoto = async (file?: File) => {
+    if (!file) return
+    try {
+      update('photo', await prepareLocalFile(file, 1000))
+      setPhotoError('')
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : 'Impossibile preparare la foto.')
+    }
   }
 
   const addCaregiver = () => {
@@ -76,7 +82,7 @@ export function Onboarding() {
 
       {step === 0 && <div className="onboarding-content"><p className="eyebrow">Partiamo da qui</p><h1>Chi entra in Cuccia?</h1><p>Scegli cane o gatto. L’app mostrerà solo strumenti sensati per lui.</p><div className="species-choice"><button className={profile.species === 'cane' ? 'is-selected' : ''} onClick={() => selectSpecies('cane')}><Dog size={36} /><strong>Cane</strong><span>Uscite, Cura, guide e addestramento</span></button><button className={profile.species === 'gatto' ? 'is-selected' : ''} onClick={() => selectSpecies('gatto')}><Cat size={36} /><strong>Gatto</strong><span>Cura, lettiera opzionale e profilo dedicato</span></button></div></div>}
 
-      {step === 1 && <div className="onboarding-content"><p className="eyebrow">La sua scheda</p><h1>Come si chiama?</h1><label className="onboarding-photo"><span>{profile.photo ? <img src={profile.photo} alt="" /> : profile.species === 'gatto' ? <Cat size={40} /> : <Dog size={40} />}</span><strong><Camera size={18} /> Aggiungi foto</strong><input type="file" accept="image/*" onChange={(event) => handlePhoto(event.target.files?.[0])} /></label><label className="field"><span>Nome</span><input autoFocus value={profile.name} onChange={(event) => update('name', event.target.value)} placeholder={profile.species === 'gatto' ? 'Es. Luna' : 'Es. Milo'} /></label></div>}
+      {step === 1 && <div className="onboarding-content"><p className="eyebrow">La sua scheda</p><h1>Come si chiama?</h1><label className="onboarding-photo"><PetAvatar name={profile.name || 'il tuo pet'} photo={profile.photo} species={profile.species} /><strong><Camera size={18} /> Aggiungi foto</strong><input type="file" accept="image/*" onChange={(event) => void handlePhoto(event.target.files?.[0])} />{photoError && <span className="field-error">{photoError}</span>}</label><label className="field"><span>Nome</span><input autoFocus value={profile.name} onChange={(event) => update('name', event.target.value)} placeholder={profile.species === 'gatto' ? 'Es. Luna' : 'Es. Milo'} /></label></div>}
 
       {step === 2 && <div className="onboarding-content"><p className="eyebrow">Età e fase</p><h1>In che momento della vita è {profile.name}?</h1><label className="field"><span>Data di nascita <small>opzionale</small></span><input type="date" value={profile.birthDate} onChange={(event) => changeBirthDate(event.target.value)} /><small>La data suggerisce una fase, ma la scelta resta sempre tua.</small></label><PhasePicker profile={profile} onChange={setProfile} resetModulesOnPhase /></div>}
 

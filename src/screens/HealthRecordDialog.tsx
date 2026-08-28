@@ -2,6 +2,7 @@ import { FilePlus2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Modal } from '../components/Modal'
 import { todayKey } from '../lib/date'
+import { prepareLocalFile } from '../lib/images'
 import { useAppState } from '../state/AppState'
 import type { PetDocument } from '../types'
 
@@ -38,19 +39,22 @@ export function HealthRecordDialog({ type, onClose }: { type: HealthRecordType; 
 
   const addFiles = async (files: FileList | null) => {
     if (!files) return
-    const accepted = [...files].filter((file) => file.size <= 1_200_000)
-    if (accepted.length !== files.length) setFileError('Alcuni file superano 1,2 MB e non sono stati aggiunti.')
-    const added = await Promise.all(accepted.map((file) => new Promise<PetDocument>((resolve) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve({
-        id: createId(),
-        name: file.name,
-        kind: 'esame',
-        dataUrl: String(reader.result ?? ''),
-        addedAt: new Date().toISOString(),
-      })
-      reader.readAsDataURL(file)
-    })))
+    const added: PetDocument[] = []
+    const errors: string[] = []
+    for (const file of [...files]) {
+      try {
+        added.push({
+          id: createId(),
+          name: file.name,
+          kind: 'esame',
+          dataUrl: await prepareLocalFile(file),
+          addedAt: new Date().toISOString(),
+        })
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : `Impossibile aggiungere ${file.name}.`)
+      }
+    }
+    setFileError(errors[0] ?? '')
     setDocuments((current) => [...current, ...added])
   }
 

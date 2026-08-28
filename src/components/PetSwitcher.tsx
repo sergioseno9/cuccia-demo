@@ -4,6 +4,7 @@ import { createEmptyProfile, lifePhaseLabel, modulePresets, suggestLifePhase } f
 import { useAppState } from '../state/AppState'
 import type { LifePhase, PetSpecies } from '../types'
 import { Modal } from './Modal'
+import { PetAvatar } from './PetAvatar'
 
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
@@ -52,11 +53,11 @@ export function PetSwitcher() {
   const [adding, setAdding] = useState(false)
   return <>
     <div className="pet-switcher" aria-label="Scegli animale">
-      <div className="pet-switcher-list">{data.pets.map((pet) => <button key={pet.id} className={pet.id === data.selectedPetId ? 'is-selected' : ''} onClick={() => selectPet(pet.id)} aria-pressed={pet.id === data.selectedPetId}>
-        <span className="pet-switcher-avatar">{pet.profile.photo ? <img src={pet.profile.photo} alt="" /> : pet.profile.species === 'gatto' ? <Cat size={19} /> : <Dog size={19} />}</span>
-        <span>{pet.profile.name}</span>
+      <div className="pet-switcher-list">{data.pets.map((pet) => <button key={pet.id} className={pet.id === data.selectedPetId ? 'is-selected' : ''} onClick={() => selectPet(pet.id)} aria-label={`Apri la scheda di ${pet.profile.name}`} aria-pressed={pet.id === data.selectedPetId}>
+        <PetAvatar className="pet-switcher-avatar" name={pet.profile.name} photo={pet.profile.photo} species={pet.profile.species} />
+        <span className="pet-switcher-name">{pet.profile.name}</span>
       </button>)}</div>
-      <button className="pet-switcher-add" onClick={() => setAdding(true)}><Plus size={19} /> Aggiungi</button>
+      <button className="pet-switcher-add" onClick={() => setAdding(true)} aria-label="Aggiungi un animale"><Plus size={22} /><span>Aggiungi</span></button>
     </div>
     {adding && <AddPetDialog onClose={() => setAdding(false)} />}
   </>

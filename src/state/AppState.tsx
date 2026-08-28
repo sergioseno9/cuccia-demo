@@ -6,7 +6,7 @@ import { parseBackupJson } from '../lib/backup'
 import { createDemoData } from '../lib/demo'
 import { createEmptyHealth } from '../lib/migrate'
 import { withRequiredModules } from '../lib/profile'
-import { clearStoredAppData, loadAppData, persistAppData } from '../lib/storage'
+import { clearStoredAppData, loadAppData, persistAppData, StorageQuotaError } from '../lib/storage'
 import type {
   AppData,
   CareEvent,
@@ -82,7 +82,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const profile = activePet?.profile ?? null
   const caregivers = data.household.caregivers
 
-  useEffect(() => persistAppData(data), [data])
+  useEffect(() => {
+    try {
+      persistAppData(data)
+    } catch (error) {
+      setToast(error instanceof StorageQuotaError
+        ? 'Spazio quasi esaurito, esporta un backup. L’ultima modifica resta aperta.'
+        : 'Salvataggio locale non riuscito. Esporta un backup prima di chiudere.')
+    }
+  }, [data])
 
   useEffect(() => {
     if (!toast) return

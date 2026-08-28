@@ -12,7 +12,7 @@ paywall. Ogni evento del Diario conserva autore, timestamp e audit, ma il loggin
 ## Principi non negoziabili
 
 1. Le funzioni vivono in sezioni separate e ordinate.
-2. Home mostra soltanto scadenze e Pet Card.
+2. Home mostra identità del pet, scadenze e Pet Card; nessun logging o feed.
 3. Il logging quotidiano è esplicito, leggero e opzionale.
 4. I dati sanitari sono inseriti e confermati a mano; niente OCR o auto-import.
 5. Il tono è calmo e fattuale: niente diagnosi, score, target o allarmi.
@@ -25,8 +25,9 @@ paywall. Ogni evento del Diario conserva autore, timestamp e audit, ma il loggin
 
 Contiene soltanto:
 
-1. **Prossime scadenze**, con stato `ok / in arrivo / scaduto`; il tap apre Cura.
-2. **Pet Card**, stampabile o salvabile in PDF anche offline.
+1. **Selettore globale e identità**, con foto grande, nome, età e fase.
+2. **Prossime scadenze**, massimo tre, con stato `ok / in arrivo / scaduto`; il tap apre Cura.
+3. **Pet Card**, stampabile o salvabile in PDF anche offline.
 
 Non contiene azioni rapide, feed, statistiche o guide.
 
@@ -44,7 +45,10 @@ descrive un ritmo scelto dall’utente e non usa mai tono prescrittivo.
 
 ### Cura
 
-È il libretto manuale del pet e comprende:
+La schermata principale è un indice del libretto: due dati chiave in alto, poi righe per
+Vaccinazioni, Antiparassitari, Farmaci, Visite, Peso e crescita e Documenti. Sverminazione,
+igiene, microchip e condizioni restano in un gruppo secondario. Ogni riga apre un dettaglio
+dedicato con storico e azione **Aggiungi**. Il libretto comprende:
 
 - prossime scadenze;
 - vaccinazioni con richiamo, lotto e scadenza prodotto;
@@ -58,11 +62,13 @@ descrive un ritmo scelto dall’utente e non usa mai tono prescrittivo.
 - igiene e toelettatura come memoria morbida;
 - documenti allegabili alle singole voci.
 
-Ogni blocco ha un’azione **Aggiungi** visibile. Tutto entra solo dopo conferma manuale.
+Ogni dettaglio ha un’azione **Aggiungi** visibile. Tutto entra solo dopo conferma manuale.
 
 ### Scopri
 
-È contenuto utile, non social, commerce o leva di pressione. Comprende:
+La schermata principale ha tre soli ingressi: **Che tipo è?**, **Consiglio del momento** e
+**Giochi & trucchi**. Quest’ultimo apre la libreria completa. Scopri è contenuto utile, non
+social, commerce o leva di pressione, e comprende:
 
 1. **Consiglio del momento**, scelto da data, stagione, specie e fase.
 2. **Addestramento cane** con metodi gentili e stati `da_imparare / in_corso / imparato`.
@@ -82,10 +88,11 @@ comportamentale e non produce diagnosi o consigli.
 
 ### Profilo
 
-Contiene identità e fase del pet, indoor/outdoor per il gatto, moduli, condizioni,
-alimentazione, veterinario, emergenza, toelettatore, famiglia, documenti locali, Pet Card,
-backup/export, tutorial riapribile e azzeramento dati. Il selettore globale permette di
-passare tra schede e aggiungere altri cani o gatti.
+La schermata principale contiene card identità, animali in famiglia e quattro menu:
+Alimentazione, Contatti utili, Famiglia e Impostazioni. I dettagli mantengono fase del pet,
+indoor/outdoor per il gatto, moduli, condizioni, veterinario, emergenza, toelettatore,
+documenti locali, backup/export, tutorial riapribile e azzeramento dati. La Pet Card resta
+accessibile dalla Home. Il selettore globale permette di passare tra schede e aggiungere pet.
 
 ## Multi-animale e personalizzazione
 
@@ -110,8 +117,9 @@ Le scadenze derivano esclusivamente da dati confermati dall’utente:
 - visite e controllo annuale: data;
 - assicurazione e verifica dati microchip: data manuale.
 
-Home e Cura mostrano la stessa vista derivata. La logica è già separata dai componenti per
-potersi collegare in Fase 1 a reminder affidabili in background. In Fase 0 non esiste push.
+Home mostra la vista derivata delle scadenze; Cura usa gli stessi dati per valori chiave e
+sezioni di dettaglio. La logica è separata dai componenti per potersi collegare in Fase 1 a
+reminder affidabili in background. In Fase 0 non esiste push.
 
 ## Onboarding e tutorial
 
@@ -153,6 +161,13 @@ lancio reale i testi richiedono revisione professionale.
 
 ## Identità visiva
 
-Usare `docs/brand/`: Clay, Honey, Sage, Ink, Cream e Sand; Fraunces per titoli e numeri,
-Plus Jakarta Sans per UI e testo. L’esperienza deve essere calda, adulta, leggibile a 390px
-e semplice anche per una persona anziana poco tecnologica.
+Usare `docs/brand/` con un sistema minimale: canvas bianco caldo `#FDFCFA`, card bianche con
+ombra `0 8px 30px rgba(43,35,32,.05)`, raggi 20–22px e accenti Clay/Honey/Sage molto dosati.
+Il blu `#5E7C8B` identifica farmaci e contatti. Fraunces compare soltanto nei titoli di
+schermata e nei nomi/numeri chiave; Plus Jakarta Sans governa tutta la UI. Icone Lucide a
+linea, avatar perfettamente tondi, molto spazio bianco e nessuna mattonella beige. La bottom
+navigation è pulita e ariosa. Il riferimento vincolante resta `docs/mockups/min_*.png`.
+
+Foto e allegati immagine vengono ridimensionati localmente fino a circa 1400px e convertiti
+in JPEG prima del salvataggio, per proteggere lo spazio del browser. Se la quota è quasi
+esaurita, Cuccia avvisa di esportare un backup senza scartare la modifica ancora in memoria.

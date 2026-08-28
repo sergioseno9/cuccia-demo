@@ -4,7 +4,7 @@ import { EventFormDialog } from '../components/EventFormDialog'
 import { CaregiverSwitch } from '../components/CaregiverSwitch'
 import { EventIcon } from '../components/EventIcon'
 import { Modal } from '../components/Modal'
-import { actionLabels, feedCopy } from '../data'
+import { actionLabels } from '../data'
 import { accordionDayLabel, dayKey, relativeAgo, timeFormatter, todayKey } from '../lib/date'
 import { useAppState } from '../state/AppState'
 import type { CareEvent, CareEventType } from '../types'
@@ -52,7 +52,8 @@ export function DiaryScreen() {
 
   return (
     <div className="screen diary-screen">
-      <header className="screen-header diary-header"><div><p className="eyebrow">Attività quotidiane</p><h1>Diario</h1><p>Registra solo ciò che è utile alla vostra organizzazione.</p></div><button id="tutorial-register" className="button-primary register-main-button" onClick={() => setPickerOpen(true)}><Plus size={22} /> Registra</button></header>
+      <header className="minimal-screen-header diary-header"><p className="eyebrow">Attività di oggi</p><h1>Diario</h1></header>
+      <button id="tutorial-register" className="button-primary register-main-button" onClick={() => setPickerOpen(true)}><Plus size={24} /> Registra attività</button>
       <CaregiverSwitch />
 
       {outingsEnabled && profile.outingIntervalHours && latestWalk && <div className="diary-soft-nudge"><Clock3 size={21} /><p>{profile.name} di solito esce ogni ~{profile.outingIntervalHours} h · ultima {relativeAgo(latestWalk.happenedAt)}. È solo il ritmo impostato da te.</p></div>}
@@ -62,7 +63,8 @@ export function DiaryScreen() {
         return <section className="day-group" key={date}><button className="day-group-toggle" onClick={() => toggleDay(date)} aria-expanded={isOpen}><span><CalendarDays size={21} />{accordionDayLabel(date)}</span><span>{events.length} {events.length === 1 ? 'voce' : 'voci'}{isOpen ? <ChevronUp size={21} /> : <ChevronDown size={21} />}</span></button>{isOpen && <div className="day-group-content">{events.length ? events.map((event) => {
           const author = caregivers.find((caregiver) => caregiver.id === event.caregiverId) ?? caregivers[0]
           const editor = caregivers.find((caregiver) => caregiver.id === event.editedBy)
-          return <button className="diary-entry" key={event.id} onClick={() => setEditing(event)}><span className="diary-entry-icon"><EventIcon type={event.type} size={21} /></span><div><strong>{actionLabels[event.type]}</strong><p>{author.name} {feedCopy[event.type]} · {timeFormatter.format(new Date(event.happenedAt))}</p>{(event.durationMin || event.note) && <small>{event.durationMin ? `${event.durationMin} min${event.note ? ` · ${event.note}` : ''}` : event.note}</small>}{event.editedAt && <small>Modificato{editor ? ` da ${editor.name}` : ''}</small>}</div><span className="avatar" style={{ background: author.color }}>{author.name[0]}</span></button>
+          const title = event.durationMin ? `${actionLabels[event.type]} · ${event.durationMin} min` : actionLabels[event.type]
+          return <button className="diary-entry" key={event.id} onClick={() => setEditing(event)}><span className="diary-entry-icon"><EventIcon type={event.type} size={22} /></span><div className="diary-entry-copy"><strong>{title}</strong>{event.note && <small>{event.note}</small>}{event.editedAt && <small>Modificato{editor ? ` da ${editor.name}` : ''}</small>}</div><span className="diary-entry-author"><span className="avatar" style={{ background: author.color }}>{author.name[0]}</span><span>{timeFormatter.format(new Date(event.happenedAt))}</span></span></button>
         }) : <div className="empty-state"><CalendarDays size={24} /><div><strong>Ancora nessuna voce oggi</strong><p>Usa “Registra” solo quando ti serve.</p></div></div>}</div>}</section>
       })}</div>
 

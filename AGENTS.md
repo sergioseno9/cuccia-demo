@@ -27,12 +27,11 @@ Expo + Supabase restano nella visione futura ma NON ora.
 
 La bottom navigation ha cinque schermate:
 
-- **Home:** soltanto prossime scadenze e Pet Card; niente logging, feed o statistiche.
-- **Diario:** registrazione esplicita e opzionale, storico in accordion, audit e soft-delete.
-- **Cura:** scadenze, libretto manuale, condizioni/malattie annotate e igiene.
-- **Scopri:** consiglio del momento; per il cane addestramento, percorsi, badge e guide;
-  per il gatto contenuti dedicati segnati “in arrivo”, mai contenuti da cane.
-- **Profilo:** dati pet, famiglia, moduli, documenti, backup/export, tutorial e azzeramento.
+- **Home:** selettore pet, hero fotografico, massimo tre scadenze e Pet Card; niente logging.
+- **Diario:** CTA unica, caregiver, attività di oggi e giorni precedenti in accordion.
+- **Cura:** due dati chiave e indice del libretto; record e inserimento vivono nei dettagli.
+- **Scopri:** tre ingressi — quiz, consiglio, giochi e trucchi — con libreria completa nel dettaglio.
+- **Profilo:** identità, animali in famiglia e quattro menu per tutti gli strumenti esistenti.
 
 ## Modello multi-animale
 
@@ -86,7 +85,10 @@ Scopri. Deve navigare alle sezioni e restare riapribile dal Profilo.
 - Verificare sempre a 390px, con contrasto alto, focus visibile e `prefers-reduced-motion`.
 - Italiano umano, tono caldo e fattuale; usare sempre il nome del pet.
 - Icone solo `lucide-react`; niente emoji nell’interfaccia.
-- Raggi 12–16px, ritmo 8px, ombre minime; Fraunces per titoli/numeri e Jakarta per UI.
+- Canvas bianco caldo `#FDFCFA`; card bianche, raggi 20–22px e ombra quasi impercettibile.
+- Controlli con raggi 12–16px, ritmo 8px e molto spazio bianco; niente muri di card o testo.
+- Fraunces soltanto per titoli di schermata e nomi/numeri chiave; Jakarta per tutto il resto.
+- Avatar sempre perfettamente tondi; foto utente o fallback illustrato caldo per specie.
 
 ## Guardrail di prodotto — NON violare
 
@@ -107,7 +109,8 @@ Scopri. Deve navigare alle sezioni e restare riapribile dal Profilo.
 
 - Clay `#D9694A`, Honey `#F2B24C`, Sage `#8FA083`, Ink `#2B2320`,
   Cream `#FBF6EE`, Sand `#EFE3D1`.
-- Fraunces per titoli e numeri chiave; Plus Jakarta Sans per UI e testo.
+- Canvas `#FDFCFA`; blu funzionale `#5E7C8B` per farmaci e contatti.
+- Fraunces per titoli di schermata e numeri chiave; Plus Jakarta Sans per UI e testo.
 
 ## Convenzioni
 
