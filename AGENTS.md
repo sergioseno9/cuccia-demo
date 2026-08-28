@@ -1,12 +1,12 @@
-# cuccia — Tutto ciò che conta del cane, in ordine
+# cuccia — Tutto ciò che conta, per ogni pet
 
-Cuccia è il posto affidabile dove vivono informazioni, salute, scadenze e contatti del cane.
-Avvisa in anticipo sulle date inserite dall’utente e permette di condividere una Pet Card in
-pochi secondi. Il coordinamento familiare resta un layer trasversale: ogni evento registra
-sempre autore e orario, ma logging e feed non sono il cuore del prodotto.
+Cuccia ordina informazioni, Cura, scadenze e contatti di cani e gatti. Gli eroi sono
+**scadenzario in-app**, **Pet Card offline** e **libretto sanitario digitale**. Il
+coordinamento familiare è trasversale: ogni evento conserva autore e orario, ma il logging
+resta leggero e facoltativo.
 
-Contesto prodotto: `docs/PROJECT_BRIEF.md`. Identità visiva: `docs/brand/`.
-Contenuti editoriali: `docs/GUIDE_CONTENT.md`.
+Contesto prodotto: `docs/PROJECT_BRIEF.md`. Qualità: `docs/QUALITY_STANDARD.md`.
+Identità visiva: `docs/brand/`. Contenuti editoriali: `docs/GUIDE_CONTENT.md`.
 
 ## Tech stack
 
@@ -18,94 +18,100 @@ Expo + Supabase restano nella visione futura ma NON ora.
 
 - Installazione: `npm install`
 - Avvio: `npm run dev`
+- Test dati: `npm test`
 - Build: `npm run build`
 - Preview build: `npm run preview`
+- Audit dipendenze: `npm run audit`
 
-## Eroi e architettura prodotto
+## Architettura prodotto
 
-Gli eroi sono, in quest’ordine: **scadenzario in-app**, **Pet Card condivisibile/stampabile**
-e **libretto sanitario digitale**. La bottom navigation mantiene cinque schermate:
+La bottom navigation ha cinque schermate:
 
-- **Home:** solo prossime scadenze e accesso alla Pet Card; niente logging o feed.
-- **Diario:** registrazione esplicita e opzionale, poi storico completo in accordion per giorno.
-- **Cura:** scadenze, libretto manuale e igiene/abitudini con toelettatura fuori dal Diario.
-- **Scopri:** consiglio del momento, giochi/trucchi, badge personali e guide filtrate per fase.
-- **Profilo:** dati cane, alimentazione, contatti, famiglia, fase, moduli, condizioni,
-  documenti locali, tutorial riapribile e azzeramento dati.
+- **Home:** soltanto prossime scadenze e Pet Card; niente logging, feed o statistiche.
+- **Diario:** registrazione esplicita e opzionale, storico in accordion, audit e soft-delete.
+- **Cura:** scadenze, libretto manuale, condizioni/malattie annotate e igiene.
+- **Scopri:** consiglio del momento; per il cane addestramento, percorsi, badge e guide;
+  per il gatto contenuti dedicati segnati “in arrivo”, mai contenuti da cane.
+- **Profilo:** dati pet, famiglia, moduli, documenti, backup/export, tutorial e azzeramento.
 
-## L’app cresce col cane
+## Modello multi-animale
 
-- `lifePhase` è una scelta manuale: `cucciolo | adulto | senior`; default `adulto`.
-- La data di nascita suggerisce la fase nell’onboarding, ma non la decide.
-- Cambiare fase rimodella preset, Scopri e guide; i moduli restano modificabili dal Profilo.
-- `trackedModules`: Uscite, Peso, Farmaci, Toelettatura/bagno. `water` resta solo legacy.
+- Struttura versionata: `household → pets[] → profile/events/health/progress`.
+- Specie ammesse: soltanto `cane | gatto`. Ogni scheda ha dati, Diario e Cura indipendenti.
+- Il selettore animale è globale e permette di aggiungere altre schede.
+- Il vecchio profilo cane viene migrato automaticamente nel primo elemento di `pets[]`.
+- Ogni modifica importante crea un backup locale automatico.
+- L’export JSON comprende tutti i pet ed è re-importabile; il PDF è una copia leggibile.
+- Ogni modifica al modello richiede test di migrazione e round-trip export/reset/import.
+
+## L’app cresce col pet
+
+- `lifePhase`: `cucciolo | adulto | senior`, scelta manuale; per il gatto “cucciolo” si
+  presenta come “Gattino”. Default `adulto`; la nascita suggerisce ma non decide.
+- `trackedModules` per pet: Uscite, Peso, Farmaci, Toelettatura/bagno e Lettiera per il gatto.
+- Il cane ha Uscite attivo di default; il gatto non ha passeggiate e Lettiera è opzionale.
 - `conditions`: `problemi_urinari`, `terapia_in_corso`, `mobilita_ridotta`,
   `peso_controllato`, `potty_training`. Sono etichette organizzative, mai diagnosi.
-- Pipì e cacca sono invisibili di default e compaiono solo con `problemi_urinari` o
-  `potty_training`.
-- Il nudge uscite usa solo `outingIntervalHours` impostato dall’utente e fatti registrati.
+- Pipì/cacca compaiono solo con `problemi_urinari` o `potty_training`; per il gatto queste
+  condizioni attivano il modulo Lettiera.
+- Il nudge uscite usa soltanto `outingIntervalHours` impostato dall’utente e fatti registrati.
 
 ## Dati e interazioni
 
-- La registrazione vive solo nel Diario: Uscita, Pappa e Nota; Farmaco solo con terapia attiva.
-- Pipì e cacca compaiono solo con `problemi_urinari` o `potty_training`; Acqua non compare.
-- Ogni azione apre sempre il popup di conferma con data, ora, caregiver e nota.
+- La registrazione vive nel Diario: Uscita per il cane, Pappa, Nota e Farmaco con terapia.
+- Acqua non compare. Ogni azione apre sempre il popup con data, ora, caregiver e nota.
 - Le uscite accettano durata 15/30/45/60 minuti o personalizzata.
 - Modifiche ed eliminazioni conservano audit locale e soft-delete.
-- Lo scadenzario deriva da vaccini/richiami, antiparassitari, sverminazione, terapie,
-  visite, controllo annuale e verifica dati microchip.
-- La toelettatura è un’abitudine morbida in Cura, mai un evento quotidiano o una scadenza dura.
-- La Pet Card funziona offline e include foto, microchip, veterinario, emergenza, farmaci,
-  allergie, alimentazione e note del proprietario.
-- Trucchi e badge sono locali, senza classifiche o streak; la condivisione genera un PNG.
+- Lo scadenzario deriva da richiami, antiparassitari con pausa stagionale, sverminazione,
+  terapie, visite, controllo annuale, assicurazione e verifica dati microchip.
+- Cura include lotto e scadenza vaccino, documenti sulle voci, peso, condizioni/malattie,
+  microchip e toelettatura come memoria morbida, fuori dal Diario.
+- La Pet Card funziona offline. Badge e progressi non usano streak, classifiche o penalità.
+- Clicker e fischietto sono utility locali; l’addestramento usa solo rinforzo positivo.
 
-## Onboarding
+## Onboarding e tutorial
 
-Passaggi brevi e skippabili: nome/foto → nascita/fase → sesso/razza/taglia → peso →
-microchip → veterinario/contatto → caregiver → condizioni. Tutto resta modificabile.
-Usare parole comuni e spiegare in una riga termini come antiparassitari e sverminazione.
+Onboarding in nove passaggi: specie → nome/foto → nascita/fase → sesso/razza/taglia → peso →
+microchip → veterinario/contatto → caregiver → condizioni. Nessuno step “Cosa seguo”: i
+moduli partono da specie/fase e si modificano dal Profilo.
 
-Dopo l’onboarding parte un tutorial di quattro coach-mark che visita Home, Diario, Cura e
-Scopri. È skippabile, viene salvato in `localStorage` e si riapre dal Profilo.
+Dopo l’onboarding parte un tutorial skippabile di quattro coach-mark: Home, Diario, Cura,
+Scopri. Deve navigare alle sezioni e restare riapribile dal Profilo.
 
 ## Principi di UX
 
-- Sezioni separate e ordinate; mai ammassare tutto nella stessa schermata.
-- Logging leggero e opzionale; mai presentarlo come compito o obiettivo.
-- Ogni schermata ha un focus e una gerarchia visiva netta.
-- Feed in linguaggio naturale con avatar, autore e orario.
-- Card di stato mostrano fatti e aprono dettagli; non sono bottoni anonimi.
-- Mobile-first: testo base almeno 16px, etichette almeno 14px e target touch almeno 44px.
-- Verificare sempre l’esperienza a 390px e mantenerla semplice anche per utenti poco tecnologici.
+- Sezioni separate e ordinate; ogni schermata ha un solo focus chiaro.
+- Logging facoltativo, mai presentato come obiettivo o compito.
+- Mobile-first: testo base almeno 16px, etichette almeno 14px, target touch almeno 44px.
+- Verificare sempre a 390px, con contrasto alto, focus visibile e `prefers-reduced-motion`.
+- Italiano umano, tono caldo e fattuale; usare sempre il nome del pet.
 - Icone solo `lucide-react`; niente emoji nell’interfaccia.
-- Raggi 12–16px, ritmo 8px, ombre minime, focus visibile, responsive e reduced motion.
+- Raggi 12–16px, ritmo 8px, ombre minime; Fraunces per titoli/numeri e Jakarta per UI.
 
 ## Guardrail di prodotto — NON violare
 
 - Farmaci, dosi, vaccini, visite, scadenze e documenti sono inseriti e confermati a mano.
-- Nessun OCR, import o salvataggio automatico di dati sanitari.
+- Nessun OCR, import automatico o salvataggio automatico di dati sanitari.
 - Nessun health score, diagnosi, consiglio clinico, target attività o percentuale di felicità.
 - Uscite e attività mostrano fatti descrittivi. Mai allarmi, correzioni o “deve uscire”.
 - Le passeggiate non rappresentano tutta l’attività; mai usare passi generici del telefono.
-- Ogni evento conserva autore + timestamp; modifiche future mantengono l’audit trail.
-- Reminder solo in-app in Fase 0. Push e sincronizzazione arrivano in Fase 1 con backend.
-- Niente abbonamenti, paywall o advertising nel prototipo.
-- Le guide sono editoriali statiche: niente chatbot, diagnosi, dosaggi o consigli veterinari
-  personalizzati; solo metodi gentili e rinforzo positivo.
-- Ogni guida termina con “Quando chiamare il veterinario” e disclaimer globale. Prima del
-  lancio reale i testi devono essere revisionati da educatore o veterinario.
-- La rilevanza delle guide dipende da `lifePhase`, mai da `profile.createdAt`.
+- Ogni evento conserva autore e timestamp; le modifiche mantengono l’audit trail.
+- Reminder solo in-app in Fase 0. Push affidabili e sincronizzazione arrivano in Fase 1.
+- Niente abbonamenti, paywall, advertising, social interno o dark pattern.
+- Le guide sono statiche: niente chatbot, diagnosi, dosaggi o consigli personalizzati; solo
+  metodi gentili. Ogni guida chiude con “Quando chiamare il veterinario” e disclaimer.
+- La rilevanza delle guide dipende da `species` e `lifePhase`, mai da `profile.createdAt`.
+- Prima del lancio reale i testi vanno revisionati da educatore o veterinario.
 
-## Design tokens
+## Design token
 
 - Clay `#D9694A`, Honey `#F2B24C`, Sage `#8FA083`, Ink `#2B2320`,
   Cream `#FBF6EE`, Sand `#EFE3D1`.
 - Fraunces per titoli e numeri chiave; Plus Jakarta Sans per UI e testo.
-- Tono caldo, calmo, essenziale: fatti e date, mai ansia o colpa.
 
 ## Convenzioni
 
-- TypeScript strict; vietato il tipo `any`.
-- File sotto 300 righe: dividere componenti, schermate, stato e logica dominio.
-- Riutilizzare il codice esistente; niente riscritture parallele o codice morto.
-- Prima della consegna eseguire `npm run build` e controllare il diff.
+- TypeScript strict; vietato `any`.
+- File sotto 300 righe; dividere componenti, schermate, stato e logica dominio.
+- Riutilizzare il codice esistente; niente riscritture parallele, codice morto o regressioni.
+- Prima della consegna eseguire `npm test`, `npm run build`, `npm run audit` e controllare il diff.

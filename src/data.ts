@@ -8,6 +8,7 @@ export const actionLabels: Record<CareEventType, string> = {
   walk: 'Passeggiata',
   sleep: 'Sonno',
   grooming: 'Toelettatura/bagno',
+  litterbox: 'Lettiera',
   medication: 'Farmaco',
   note: 'Nota',
 }
@@ -20,6 +21,7 @@ export const feedCopy: Record<CareEventType, string> = {
   walk: 'ha fatto una passeggiata',
   sleep: 'ha segnato il sonno',
   grooming: 'ha registrato la toelettatura',
+  litterbox: 'ha controllato la lettiera',
   medication: 'ha somministrato il farmaco',
   note: 'ha aggiunto una nota',
 }

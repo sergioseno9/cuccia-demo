@@ -2,23 +2,22 @@
 
 ## Tesi di prodotto
 
-Cuccia è il posto affidabile dove vivono le informazioni importanti del cane, dove le date
-inserite dalla famiglia diventano promemoria chiari e dove la Pet Card è pronta da condividere.
-I tre eroi sono **scadenzario in-app**, **Pet Card offline** e **libretto sanitario digitale**.
+Cuccia è il posto affidabile dove vivono le informazioni importanti di cani e gatti, dove
+le date confermate dalla famiglia diventano promemoria chiari e dove la Pet Card è pronta da
+condividere. I tre eroi sono **scadenzario in-app**, **Pet Card offline** e **libretto di Cura**.
 
-In Fase 0 tutto vive nel `localStorage` del browser: nessun backend, account, push,
-sincronizzazione o paywall. Il coordinamento familiare resta trasversale: ogni evento del
-Diario conserva autore, timestamp e audit, ma il logging è sempre facoltativo.
+In Fase 0 tutto vive nel `localStorage`: nessun backend, account, push, sincronizzazione o
+paywall. Ogni evento del Diario conserva autore, timestamp e audit, ma il logging è facoltativo.
 
 ## Principi non negoziabili
 
 1. Le funzioni vivono in sezioni separate e ordinate.
-2. Home mostra solo ciò che serve sapere subito.
+2. Home mostra soltanto scadenze e Pet Card.
 3. Il logging quotidiano è esplicito, leggero e opzionale.
-4. I dati sanitari sono inseriti e confermati manualmente; niente OCR o auto-save.
-5. Il tono è calmo e fattuale: niente diagnosi, health score, target o allarmi.
-6. La condivisione funziona offline tramite stampa/PDF o PNG per i badge.
-7. L’interfaccia è mobile-first: base 16px, etichette 14px e target touch almeno 44px.
+4. I dati sanitari sono inseriti e confermati a mano; niente OCR o auto-import.
+5. Il tono è calmo e fattuale: niente diagnosi, score, target o allarmi.
+6. I dati non si perdono: backup automatico, export completo e migrazioni testate.
+7. Mobile-first: testo base 16px, etichette 14px e target touch almeno 44px.
 
 ## Architettura a cinque tab
 
@@ -26,114 +25,131 @@ Diario conserva autore, timestamp e audit, ma il logging è sempre facoltativo.
 
 Contiene soltanto:
 
-1. **Prossime scadenze**, con stato `ok / in arrivo / scaduto`; il tap apre la voce in Cura.
+1. **Prossime scadenze**, con stato `ok / in arrivo / scaduto`; il tap apre Cura.
 2. **Pet Card**, stampabile o salvabile in PDF anche offline.
 
 Non contiene azioni rapide, feed, statistiche o guide.
 
 ### Diario
 
-Il pulsante **Registra** propone Uscita/Passeggiata, Pappa e Nota; Farmaco compare solo con
-una terapia attiva. Pipì e cacca compaiono soltanto con `problemi_urinari` o
-`potty_training`. Acqua e Toelettatura non fanno parte del Diario.
+Il pulsante **Registra** apre sempre prima un popup. Per il cane propone Uscita/Passeggiata,
+Pappa e Nota; Farmaco compare con terapia attiva. Pipì e cacca compaiono solo con
+`problemi_urinari` o `potty_training`. Per il gatto non esistono passeggiate di default e
+Lettiera compare soltanto quando il modulo è attivo. Acqua e Toelettatura non compaiono.
 
-Ogni azione apre sempre un popup prima del salvataggio: data, ora con preset, durata delle
-uscite 15/30/45/60 o personalizzata, caregiver e nota. Lo storico è un accordion per giorno:
-Oggi aperto, giorni precedenti chiusi e data corretta. Ogni voce è modificabile o eliminabile
-con soft-delete e audit. Il ritmo uscite, se impostato dall’utente, resta un nudge morbido.
+Il popup contiene data, ora con preset, durata uscita 15/30/45/60 o personalizzata,
+caregiver e nota. Lo storico è un accordion per giorno: Oggi aperto, giorni precedenti chiusi.
+Ogni voce è modificabile o eliminabile con soft-delete e audit. Il nudge uscite, se impostato,
+descrive un ritmo scelto dall’utente e non usa mai tono prescrittivo.
 
 ### Cura
 
-È il libretto manuale del cane e comprende:
+È il libretto manuale del pet e comprende:
 
-- scadenze calcolate;
-- vaccinazioni e richiami;
-- antiparassitari per pulci e zecche;
+- prossime scadenze;
+- vaccinazioni con richiamo, lotto e scadenza prodotto;
+- antiparassitari con cadenza ed eventuale pausa stagionale;
 - sverminazione;
 - farmaci/terapie e dosi registrate nel Diario;
 - visite veterinarie;
 - peso e storico;
-- allergie e condizioni;
+- allergie, condizioni organizzative e campo condizioni/malattie annotate;
 - microchip;
-- igiene e abitudini, inclusa la toelettatura/bagno.
+- igiene e toelettatura come memoria morbida;
+- documenti allegabili alle singole voci.
 
-Ogni blocco ha un’azione **Aggiungi** visibile. La toelettatura è una memoria morbida del
-tipo “ultima volta / ogni circa X settimane”: non è una scadenza sanitaria e non va nel Diario.
+Ogni blocco ha un’azione **Aggiungi** visibile. Tutto entra solo dopo conferma manuale.
 
 ### Scopri
 
-È un’area utile, non un social e non una leva di pressione. Comprende:
+È contenuto utile, non social, commerce o leva di pressione. Comprende:
 
-1. **Consiglio del momento**, scelto da data, stagione e fase del cane.
-2. **Giochi e trucchi** con metodi gentili, stati `da_imparare / in_corso / imparato`.
-3. **Badge personali** per trucco e livello, senza streak, classifiche o penalità.
-4. **Condividi come immagine**, che genera una card PNG locale nel brand Cuccia.
-5. **Guide statiche** filtrate per `lifePhase`; “Niente panico” vive qui solo per Cucciolo.
-6. **I tuoi progressi**, con badge ottenuti e prossimo traguardo.
+1. **Consiglio del momento**, scelto da data, stagione, specie e fase.
+2. **Addestramento cane** con metodi gentili e stati `da_imparare / in_corso / imparato`.
+3. **Percorsi guidati**: Cucciolo appena arrivato, Le basi, Passeggiata tranquilla.
+4. **Badge positivi** per trucco, livello e percorso; niente streak o penalità.
+5. **Condividi come immagine**, card PNG locale nel brand Cuccia.
+6. **Clicker e fischietto**, due utility audio locali.
+7. **Guide statiche** filtrate per `species` e `lifePhase`; Niente panico solo per cucciolo.
+8. **I tuoi progressi**, con badge ottenuti e prossimo traguardo.
+9. **Che tipo è?**, mini-quiz di archetipo per cane e gatto: gioco dichiarato, risultato
+   deterministico e rigiocabile, salvato localmente per singolo pet e condivisibile come PNG.
+
+I contenuti di addestramento e le guide attuali sono da cane. Il quiz usa due domande
+specifiche per il gatto; per il resto Scopri mostra consigli dedicati e comunica con chiarezza
+che guide e attività sono in arrivo. Il quiz è solo un momento leggero: non è una valutazione
+comportamentale e non produce diagnosi o consigli.
 
 ### Profilo
 
-Contiene identità, fase, moduli, condizioni, alimentazione, veterinario, emergenza,
-toelettatore, famiglia, documenti fotografici locali, Pet Card, **Rivedi tutorial** e
-azzeramento dati.
+Contiene identità e fase del pet, indoor/outdoor per il gatto, moduli, condizioni,
+alimentazione, veterinario, emergenza, toelettatore, famiglia, documenti locali, Pet Card,
+backup/export, tutorial riapribile e azzeramento dati. Il selettore globale permette di
+passare tra schede e aggiungere altri cani o gatti.
 
-## L’app cresce col cane
+## Multi-animale e personalizzazione
 
-`lifePhase` è una scelta manuale: **Cucciolo, Adulto o Senior**. La nascita può suggerirla,
-ma non decide. Il default è Adulto e il cambio dal Profilo aggiorna Scopri e le guide.
+Il modello è `household → pets[]`. `household` contiene i caregiver; ogni `pet` contiene
+profilo, eventi, Cura, progressi e badge indipendenti. Le uniche specie ammesse sono `cane`
+e `gatto`. Il cane esistente viene migrato automaticamente nel primo elemento di `pets[]`.
 
-I moduli modificabili sono Uscite, Peso, Farmaci e Toelettatura/bagno. Le condizioni neutrali
-sono `problemi_urinari`, `terapia_in_corso`, `mobilita_ridotta`, `peso_controllato` e
-`potty_training`: organizzano l’interfaccia e non formulano diagnosi.
+`lifePhase` è una scelta manuale: **Cucciolo/Gattino, Adulto o Senior**. La nascita può
+suggerirla, ma non decide; il default è Adulto.
+
+I moduli sono per pet: Uscite, Peso, Farmaci, Toelettatura/bagno e Lettiera per il gatto.
+Le condizioni neutrali sono `problemi_urinari`, `terapia_in_corso`, `mobilita_ridotta`,
+`peso_controllato` e `potty_training`: organizzano l’interfaccia e non sono diagnosi.
 
 ## Scadenzario locale
 
 Le scadenze derivano esclusivamente da dati confermati dall’utente:
 
 - vaccini e richiami: prossima data;
-- antiparassitari e sverminazione: ultima data + cadenza;
-- farmaci: orari e durata della terapia;
+- antiparassitari e sverminazione: ultima data + cadenza, rispettando la pausa stagionale;
+- farmaci: orari e durata terapia;
 - visite e controllo annuale: data;
-- verifica dati microchip: data manuale.
+- assicurazione e verifica dati microchip: data manuale.
 
-Sono mostrate in Home e Cura. In Fase 0 non esistono notifiche push; backend, account,
-sincronizzazione affidabile e push appartengono alla Fase 1.
+Home e Cura mostrano la stessa vista derivata. La logica è già separata dai componenti per
+potersi collegare in Fase 1 a reminder affidabili in background. In Fase 0 non esiste push.
 
 ## Onboarding e tutorial
 
-L’onboarding ha otto passaggi brevi e skippabili:
+L’onboarding ha nove passaggi:
 
-1. nome e foto;
-2. nascita e fase suggerita ma modificabile;
-3. sesso, razza e taglia;
-4. peso;
-5. microchip;
-6. veterinario e contatto;
-7. caregiver;
-8. condizioni particolari.
+1. specie Cane/Gatto;
+2. nome e foto;
+3. nascita e fase suggerita ma modificabile;
+4. sesso, razza e taglia, più indoor/outdoor per il gatto;
+5. peso;
+6. microchip;
+7. veterinario e contatti;
+8. caregiver;
+9. condizioni opzionali.
 
-Dopo l’onboarding parte un tour di quattro coach-mark che naviga automaticamente in Home,
-Diario, Cura e Scopri. È skippabile, viene salvato localmente e si riapre dal Profilo.
+Non esiste lo step “Cosa seguo”: i moduli partono da specie/fase e si regolano dal Profilo.
+Dopo l’onboarding parte un tour skippabile di quattro coach-mark: Home, Diario, Cura, Scopri.
+
+## Backup, export e migrazione
+
+- Storage corrente versionato: schema 2.
+- A ogni scrittura importante vengono aggiornati dati correnti, copia precedente e backup JSON.
+- L’export JSON comprende famiglia, tutti i pet, eventi, audit, Cura, documenti, progressi e
+  ultimo risultato del quiz per ciascun pet.
+- L’import sostituisce i dati solo dopo conferma e passa dalla stessa migrazione versionata.
+- Il PDF è una copia leggibile di tutti i pet; il JSON è il formato di ripristino.
+- Il comando **Azzera** elimina dati correnti, legacy e backup dal browser.
+
+Il gate automatico verifica: stato legacy popolato → migrazione senza perdita; creazione dati →
+export → reset → import → identità completa; recupero da backup automatico se il salvataggio
+principale è corrotto.
 
 ## Guide e sicurezza editoriale
 
-Le guide sono dati statici locali, senza chatbot o paywall. La pertinenza dipende soltanto
-da `lifePhase`, mai da `profile.createdAt`. Il contenuto usa metodi gentili e rinforzo
-positivo; ogni guida termina con “Quando chiamare il veterinario” e disclaimer globale.
-Prima del lancio reale i testi richiedono revisione professionale.
-
-## Modello dati locale e migrazione
-
-- `DogProfile`: identità, fase, moduli, condizioni, alimentazione, contatti e caregiver.
-- `CareEvent`: tipo, autore, `happenedAt`, durata, nota, terapia, audit e soft-delete.
-- `HealthData`: vaccinazioni, prevenzioni, terapie, visite, pesi e toelettatura.
-- `Deadline`: vista derivata, mai fonte primaria.
-- `Guide`, `Tip` e `Trick`: contenuti statici locali.
-- `trickProgress` e `badges`: progressi personali locali.
-
-La migrazione conserva profili ed eventi precedenti. Acqua e altri eventi legacy restano nei
-dati ma non vengono mostrati nella nuova esperienza; le vecchie toelettature vengono copiate
-nella sezione Cura senza comparire nel Diario.
+Le guide sono dati statici locali, senza chatbot o paywall. La pertinenza dipende da
+`species` e `lifePhase`, mai da `profile.createdAt`. Usano metodi gentili e rinforzo positivo;
+ogni guida termina con “Quando chiamare il veterinario” e disclaimer globale. Prima del
+lancio reale i testi richiedono revisione professionale.
 
 ## Identità visiva
 

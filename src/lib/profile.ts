@@ -1,4 +1,11 @@
-import type { DogCondition, LifePhase, TrackedModule } from '../types'
+import type { LifePhase, PetCondition, PetProfile, PetSpecies, TrackedModule } from '../types'
+
+export const lifePhaseIds: LifePhase[] = ['cucciolo', 'adulto', 'senior']
+
+export const lifePhaseLabel = (phase: LifePhase, species: PetSpecies) => {
+  if (phase === 'cucciolo') return species === 'gatto' ? 'Gattino' : 'Cucciolo'
+  return phase === 'adulto' ? 'Adulto' : 'Senior'
+}
 
 export const lifePhaseLabels: Record<LifePhase, string> = {
   cucciolo: 'Cucciolo',
@@ -13,33 +20,49 @@ export const moduleLabels: Record<TrackedModule, string> = {
   weight: 'Peso',
   medications: 'Farmaci',
   grooming: 'Toelettatura/bagno',
+  litterbox: 'Lettiera',
 }
 
-export const conditionLabels: Record<DogCondition, string> = {
+export const conditionLabels: Record<PetCondition, string> = {
   problemi_urinari: 'Problemi urinari',
   terapia_in_corso: 'Terapia in corso',
   mobilita_ridotta: 'Mobilità ridotta',
   peso_controllato: 'Peso controllato',
-  potty_training: 'Sta imparando a fare i bisogni fuori',
+  potty_training: 'Sta imparando dove fare i bisogni',
 }
 
-export const modulePresets: Record<LifePhase, TrackedModule[]> = {
-  cucciolo: ['outings', 'grooming'],
-  adulto: ['outings', 'grooming'],
-  senior: ['outings', 'weight', 'medications', 'grooming'],
+export const conditionIds = Object.keys(conditionLabels) as PetCondition[]
+
+export const modulePresets = (species: PetSpecies, phase: LifePhase): TrackedModule[] => {
+  if (species === 'gatto') {
+    return phase === 'senior' ? ['weight', 'medications', 'grooming'] : ['weight', 'grooming']
+  }
+  if (phase === 'senior') return ['outings', 'weight', 'medications', 'grooming']
+  return ['outings', 'grooming']
 }
 
-export const conditionModules: Record<DogCondition, TrackedModule[]> = {
-  problemi_urinari: ['needs'],
-  terapia_in_corso: ['medications'],
-  mobilita_ridotta: ['outings'],
-  peso_controllato: ['weight'],
-  potty_training: ['needs'],
+export const trackedModuleIds = (species: PetSpecies): TrackedModule[] => species === 'gatto'
+  ? ['weight', 'medications', 'grooming', 'litterbox']
+  : ['outings', 'weight', 'medications', 'grooming']
+
+const conditionModules = (condition: PetCondition, species: PetSpecies): TrackedModule[] => {
+  if (condition === 'problemi_urinari' || condition === 'potty_training') {
+    return [species === 'gatto' ? 'litterbox' : 'needs']
+  }
+  if (condition === 'terapia_in_corso') return ['medications']
+  if (condition === 'mobilita_ridotta') return species === 'cane' ? ['outings'] : []
+  if (condition === 'peso_controllato') return ['weight']
+  return []
 }
 
-export const trackedModuleIds: TrackedModule[] = ['outings', 'weight', 'medications', 'grooming']
-export const conditionIds = Object.keys(conditionLabels) as DogCondition[]
-export const lifePhaseIds = Object.keys(lifePhaseLabels) as LifePhase[]
+export const requiredModules = (conditions: PetCondition[], species: PetSpecies) =>
+  [...new Set(conditions.flatMap((condition) => conditionModules(condition, species)))]
+
+export const withRequiredModules = (
+  modules: TrackedModule[],
+  conditions: PetCondition[],
+  species: PetSpecies,
+) => [...new Set([...modules, ...requiredModules(conditions, species)])]
 
 export const suggestLifePhase = (birthDate: string): LifePhase => {
   if (!birthDate) return 'adulto'
@@ -50,16 +73,34 @@ export const suggestLifePhase = (birthDate: string): LifePhase => {
   return 'adulto'
 }
 
-export const requiredModules = (conditions: DogCondition[]) =>
-  conditions.flatMap((condition) => conditionModules[condition])
-
-export const withRequiredModules = (
-  modules: TrackedModule[],
-  conditions: DogCondition[],
-) => [...new Set([...modules, ...requiredModules(conditions)])]
-
-export const phaseTone: Record<LifePhase, string> = {
-  cucciolo: 'Guide e routine vicine, senza trasformarle in obblighi.',
-  adulto: 'Scadenze e informazioni importanti, sempre a portata di mano.',
-  senior: 'Terapie, visite e peso a colpo d’occhio.',
-}
+export const createEmptyProfile = (species: PetSpecies, id: string): PetProfile => ({
+  id,
+  createdAt: new Date().toISOString(),
+  species,
+  lifePhase: 'adulto',
+  trackedModules: modulePresets(species, 'adulto'),
+  conditions: [],
+  conditionNotes: '',
+  medicalNotes: '',
+  ...(species === 'gatto' ? { indoorOutdoor: 'indoor' as const } : {}),
+  name: '',
+  photo: '',
+  birthDate: '',
+  sex: 'unknown',
+  breed: '',
+  size: 'medium',
+  weight: '',
+  microchip: '',
+  vetName: '',
+  vetPhone: '',
+  emergencyContact: '',
+  groomerName: '',
+  groomerPhone: '',
+  feeding: { food: '', portion: '', schedule: '', notes: '' },
+  allergies: '',
+  notes: '',
+  annualCheckDate: '',
+  insuranceRenewalDate: '',
+  microchipRenewalDate: '',
+  documents: [],
+})

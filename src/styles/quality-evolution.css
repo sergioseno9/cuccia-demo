@@ -1,0 +1,133 @@
+.pet-switcher {
+  position: sticky;
+  z-index: 25;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(251, 246, 238, 0.96);
+  backdrop-filter: blur(12px);
+}
+.pet-switcher-list { min-width: 0; display: flex; flex: 1; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.pet-switcher button { min-height: 44px; border: 1px solid transparent; border-radius: 13px; background: transparent; font-size: 14px; font-weight: 700; cursor: pointer; }
+.pet-switcher-list button { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 4px; white-space: nowrap; }
+.pet-switcher-list button.is-selected { border-color: rgba(217, 105, 74, 0.35); background: rgba(217, 105, 74, 0.09); }
+.pet-switcher-avatar { width: 36px; height: 36px; display: grid; place-items: center; overflow: hidden; border-radius: 11px; background: var(--sand); color: var(--clay); }
+.pet-switcher-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pet-switcher-add { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; color: var(--clay); }
+
+.caregiver-switch { margin-top: 18px; padding: 12px; }
+.caregiver-switch > span { font-size: 14px; }
+.caregiver-switch button { min-height: 44px; padding: 4px 10px 4px 4px; font-size: 14px; }
+.caregiver-switch button > span { width: 34px; height: 34px; font-size: 14px; }
+
+.species-choice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 24px; }
+.species-choice button { min-height: 148px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: #fffaf5; text-align: left; cursor: pointer; }
+.species-choice button strong { font: 600 24px/1 'Fraunces', serif; }
+.species-choice button span { color: var(--taupe); font-size: 14px; line-height: 1.5; }
+.species-choice button.is-selected { border-color: var(--clay); background: rgba(217, 105, 74, 0.08); box-shadow: inset 0 0 0 1px rgba(217, 105, 74, 0.18); }
+.compact-choice { margin: 0 0 18px; }
+.compact-choice button { min-height: 86px; }
+
+.onboarding-progress { height: 6px; overflow: hidden; border-radius: 999px; background: var(--sand); }
+.onboarding-progress span { display: block; height: 100%; border-radius: inherit; background: var(--clay); transition: width 220ms ease; }
+.onboarding-step-label { margin: 18px 0 8px; color: var(--clay); font-size: 14px; font-weight: 800; letter-spacing: .05em; }
+.onboarding-content { flex: 1; }
+.onboarding-content > p:not(.eyebrow):not(.gentle-note) { color: var(--taupe); font-size: 16px; line-height: 1.65; }
+.onboarding-content h1 { font-size: clamp(36px, 10vw, 44px); }
+.onboarding-content > * + .field,
+.onboarding-content > .field + .field { margin-top: 16px; }
+.onboarding-photo { display: flex; align-items: center; gap: 14px; margin: 22px 0; cursor: pointer; }
+.onboarding-photo > span { width: 76px; height: 76px; display: grid; place-items: center; overflow: hidden; border-radius: 20px; background: var(--sand); color: var(--clay); }
+.onboarding-photo > span img { width: 100%; height: 100%; object-fit: cover; }
+.onboarding-photo > strong { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; }
+.onboarding-photo input, .record-documents input, .backup-actions input { display: none; }
+.gentle-note { display: flex; align-items: flex-start; gap: 8px; margin: 18px 0 0; padding: 15px; border-radius: 14px; background: rgba(143, 160, 131, .14); color: var(--taupe); font-size: 15px; line-height: 1.55; }
+.caregiver-onboarding-list { display: grid; gap: 10px; margin-top: 18px; }
+.caregiver-onboarding-list > div { display: grid; grid-template-columns: 42px 1fr 44px; align-items: center; gap: 9px; }
+.caregiver-onboarding-list input { min-width: 0; min-height: 52px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: #fffaf5; font-size: 16px; }
+.demo-link { min-height: 48px; margin-top: 12px; border: 0; background: transparent; color: var(--clay); font-size: 15px; font-weight: 700; cursor: pointer; }
+
+.check-field { min-height: 48px; display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+.check-field input { width: 22px; height: 22px; accent-color: var(--clay); }
+.record-documents { display: grid; gap: 10px; padding: 16px; border-radius: 14px; background: var(--sand); }
+.record-documents > strong { font-size: 15px; }
+.record-documents > strong small { color: var(--taupe); font-weight: 500; }
+.record-documents > label { width: fit-content; cursor: pointer; }
+.record-documents > span { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #fffaf5; font-size: 14px; }
+.record-documents > span button { width: 34px; height: 34px; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
+.care-document-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.care-document-links a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 10px; background: rgba(251,246,238,.72); color: var(--clay); font-size: 14px; font-weight: 700; text-decoration: none; }
+.record-row .care-document-links a,
+.therapy-card .care-document-links a,
+.visit-list .care-document-links a { background: var(--sand); }
+.document-file-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 9px; background: var(--sand); color: var(--clay); }
+
+.training-tools { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; padding: 18px; border-radius: 16px; background: var(--ink); color: var(--cream); }
+.training-tools strong { font-size: 16px; }
+.training-tools p { margin: 4px 0 0; color: rgba(251,246,238,.7); font-size: 14px; line-height: 1.5; }
+.training-tools > div:last-child { display: flex; gap: 8px; }
+.training-tools button { min-width: 78px; min-height: 58px; display: grid; place-items: center; gap: 3px; border: 1px solid rgba(251,246,238,.18); border-radius: 12px; background: rgba(251,246,238,.1); color: var(--cream); font-size: 14px; cursor: pointer; }
+.training-paths { display: grid; gap: 10px; margin-top: 28px; }
+.training-paths h3 { margin: 0; font: 600 24px 'Fraunces', serif; }
+.training-paths article { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; overflow: hidden; padding: 16px 16px 20px; border: 1px solid var(--line); border-radius: 15px; background: #fffaf5; }
+.training-paths article strong { font-size: 16px; }
+.training-paths article p { margin: 5px 0 0; color: var(--taupe); font-size: 14px; line-height: 1.5; }
+.training-paths article > span { font-size: 14px; font-weight: 700; }
+.path-progress { position: absolute; right: 0; bottom: 0; left: 0; height: 6px; background: var(--sand); }
+.path-progress span { display: block; height: 100%; background: var(--sage); }
+.cat-discover-coming { padding: 28px; border-radius: 20px; background: rgba(143,160,131,.15); }
+.cat-discover-coming h2 { margin: 8px 0; font-size: 28px; }
+.cat-discover-coming > p:last-child { margin: 0; color: var(--taupe); font-size: 16px; line-height: 1.65; }
+
+.household-pet-list { display: grid; gap: 9px; }
+.household-pet-list article { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: #fffaf5; }
+.household-pet-list article.is-active { border-color: rgba(217,105,74,.4); background: rgba(217,105,74,.07); }
+.household-pet-list article > button:first-child { min-width: 0; min-height: 48px; display: flex; flex: 1; align-items: center; gap: 12px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.household-pet-list article > button:first-child > span { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px; background: var(--sand); color: var(--clay); }
+.household-pet-list strong { font-size: 16px; }
+.household-pet-list p { margin: 3px 0 0; color: var(--taupe); font-size: 14px; }
+
+.backup-actions { display: grid; gap: 9px; }
+.backup-actions button { width: 100%; }
+.backup-message { margin: 12px 0 0; color: #596c50; font-size: 15px; line-height: 1.5; }
+.backup-report-layer { position: fixed; z-index: 80; inset: 0; overflow-y: auto; padding: 20px; background: var(--sand); }
+.backup-report-actions { position: sticky; z-index: 2; top: 0; display: flex; justify-content: flex-end; gap: 8px; width: min(100%, 760px); margin: 0 auto 12px; padding: 10px; border-radius: 14px; background: rgba(251,246,238,.96); }
+.print-export-report { width: min(100%, 760px); margin: 0 auto; padding: 36px; background: #fff; color: var(--ink); box-shadow: var(--soft-shadow); }
+.print-export-report header { display: flex; align-items: center; gap: 16px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
+.print-export-report header img { width: 64px; height: 64px; border-radius: 16px; }
+.print-export-report h1 { margin: 0 0 5px; font-size: 38px; }
+.print-export-report h2 { margin: 28px 0 12px; font-size: 27px; }
+.print-export-report h3 { margin: 20px 0 6px; font-size: 18px; }
+.print-export-report p, .print-export-report dt, .print-export-report dd { font-size: 15px; line-height: 1.55; }
+.print-export-report dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.print-export-report dl div { padding: 12px; border-radius: 10px; background: var(--cream); }
+.print-export-report dt { color: var(--taupe); }
+.print-export-report dd { margin: 4px 0 0; font-weight: 700; }
+.backup-pet-report { margin-top: 28px; padding-top: 8px; border-top: 1px solid var(--line); }
+.print-export-report footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--taupe); font-size: 13px; }
+
+@media (max-width: 390px) {
+  .pet-switcher { padding-inline: 12px; }
+  .pet-switcher-add { width: 44px; padding: 0; font-size: 0; }
+  .pet-switcher-add svg { width: 21px; height: 21px; }
+  .species-choice { grid-template-columns: 1fr; }
+  .species-choice button { min-height: 112px; }
+  .training-tools { align-items: stretch; flex-direction: column; }
+  .training-tools > div:last-child button { flex: 1; }
+  .backup-report-layer { padding: 0; }
+  .backup-report-actions { border-radius: 0; }
+  .print-export-report { padding: 22px 16px; }
+  .print-export-report dl { grid-template-columns: 1fr; }
+}
+
+@media print {
+  body:has(.backup-report-layer) .print-pet-card,
+  body:has(.backup-report-layer) .print-pet-card * { visibility: hidden !important; }
+  .print-export-report,
+  .print-export-report * { visibility: visible !important; }
+  .print-export-report { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 24px; box-shadow: none; }
+  .backup-report-actions { display: none !important; }
+}

@@ -1,6 +1,7 @@
 # cuccia — Sezione "Guida" (contenuti + modello)
 
-Mini-guide **statiche e curate**, attualmente concentrate sulla fase Cucciolo. Fonte: il PDF
+Mini-guide **statiche e curate**, attualmente per cane e concentrate sulla fase Cucciolo.
+Per il gatto i contenuti sono segnati “in arrivo” e non vengono riutilizzate guide da cane. Fonte: il PDF
 "Cucciolo in casa, niente panico" (in `docs/`). Tono: pratico, caldo, non
 giudicante, solo metodi gentili / rinforzo positivo.
 
@@ -19,7 +20,7 @@ Il core di Cuccia è il libretto sanitario digitale, lo scadenzario e la Pet Car
 mai il veterinario. Il logging quotidiano non sblocca contenuti e non esistono score, target,
 paywall o suggerimenti clinici.
 
-La rilevanza usa soltanto `dog.lifePhase`, scelta manualmente dall’utente. La data di nascita
+La rilevanza usa soltanto `pet.species` e `pet.lifePhase`, scelti dall’utente. La data di nascita
 può suggerire la fase, ma `profile.createdAt` non entra mai nella selezione. In Adulto o Senior
 non mostrare guide forzate se non esiste un contenuto con fase compatibile. Guide, giochi e
 consigli vivono nel tab **Scopri**, separati da Home, Diario e Cura.
@@ -30,7 +31,7 @@ consigli vivono nel tab **Scopri**, separati da Home, Diario e Cura.
 
 La Guida vive nel tab **Scopri**, dopo consiglio del momento e giochi/trucchi:
 
-1. **Lista Guide** — mostra soltanto contenuti compatibili con la fase del cane.
+1. **Lista Guide** — mostra soltanto contenuti compatibili con specie e fase del pet.
 2. **"Niente panico"** — nella stessa sezione e solo in modalità Cucciolo: quattro pulsanti
    **Notte · Pipì in casa · Morsi · Caos** aprono la guida pertinente.
 3. **Collegamenti contestuali** — un consiglio del momento può aprire una guida o un trucco,
@@ -55,6 +56,7 @@ type GuideSection =
 
 type Guide = {
   id: string;                 // 'notti-tranquille'
+  species: 'cane' | 'gatto';
   category: 'cucciolo' | 'strumenti';
   title: string;              // problema-first
   subtitle?: string;
@@ -66,7 +68,8 @@ type Guide = {
 };
 ```
 
-Ogni guida termina sempre con una sezione `vet` + il disclaimer globale (§6).
+Ogni guida termina sempre con una sezione `vet` + il disclaimer globale (§6). Tutte le
+guide V1 elencate in questo documento hanno `species: 'cane'`.
 
 ---
 
@@ -83,12 +86,13 @@ Caos generale  → 'routine'
 
 ## 4. Pertinenza in Scopri
 
-Una guida è visibile soltanto se `fase` coincide con la `lifePhase` scelta oppure vale
-`tutte`. La data di creazione del profilo non conta mai. Il vecchio id `primo-giorno` non
+Una guida è visibile soltanto se `species` coincide con il pet selezionato e `fase` coincide
+con la `lifePhase` scelta oppure vale `tutte`. La data di creazione del profilo non conta mai.
+Per il gatto, finché non esistono testi dedicati e revisionati, mostrare “in arrivo”. Il vecchio id `primo-giorno` non
 deve essere usato: la guida corretta è `primi-mesi`.
 
 Il **Consiglio del momento** è un dato separato in `src/data/tips.ts`: può ruotare in base a
-data, stagione e fase e può collegarsi a una guida o un trucco. Non usa eventi sanitari per
+data, stagione, specie e fase e può collegarsi a una guida o un trucco. Non usa eventi sanitari per
 fare inferenze cliniche. Per Adulto e Senior non viene forzata alcuna guida se manca contenuto
 pertinente.
 

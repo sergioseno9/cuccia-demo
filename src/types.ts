@@ -1,3 +1,6 @@
+export type PetSpecies = 'cane' | 'gatto'
+export type LifePhase = 'cucciolo' | 'adulto' | 'senior'
+
 export type CareEventType =
   | 'meal'
   | 'water'
@@ -6,10 +9,9 @@ export type CareEventType =
   | 'walk'
   | 'sleep'
   | 'grooming'
+  | 'litterbox'
   | 'medication'
   | 'note'
-
-export type LifePhase = 'cucciolo' | 'adulto' | 'senior'
 
 export type TrackedModule =
   | 'outings'
@@ -18,8 +20,9 @@ export type TrackedModule =
   | 'weight'
   | 'medications'
   | 'grooming'
+  | 'litterbox'
 
-export type DogCondition =
+export type PetCondition =
   | 'problemi_urinari'
   | 'terapia_in_corso'
   | 'mobilita_ridotta'
@@ -33,12 +36,12 @@ export interface FeedingInfo {
   notes: string
 }
 
-export type DogDocumentKind = 'libretto' | 'pedigree' | 'ricevuta' | 'altro'
+export type PetDocumentKind = 'libretto' | 'pedigree' | 'esame' | 'ricevuta' | 'altro'
 
-export interface DogDocument {
+export interface PetDocument {
   id: string
   name: string
-  kind: DogDocumentKind
+  kind: PetDocumentKind
   dataUrl: string
   addedAt: string
 }
@@ -64,13 +67,17 @@ export interface CareEvent {
   deletedAt?: string
 }
 
-export interface DogProfile {
+export interface PetProfile {
+  id: string
   createdAt: string
+  species: PetSpecies
   lifePhase: LifePhase
   trackedModules: TrackedModule[]
-  conditions: DogCondition[]
+  conditions: PetCondition[]
   conditionNotes: string
+  medicalNotes: string
   outingIntervalHours?: number
+  indoorOutdoor?: 'indoor' | 'outdoor' | 'both'
   name: string
   photo: string
   birthDate: string
@@ -90,27 +97,35 @@ export interface DogProfile {
   annualCheckDate: string
   insuranceRenewalDate: string
   microchipRenewalDate: string
-  documents: DogDocument[]
-  caregivers: Caregiver[]
+  documents: PetDocument[]
 }
 
-export interface VaccinationRecord {
+interface DocumentedRecord {
+  documents: PetDocument[]
+}
+
+export interface VaccinationRecord extends DocumentedRecord {
   id: string
   name: string
   administeredDate: string
   nextDate: string
+  lotNumber: string
+  expiryDate: string
   notes: string
 }
 
-export interface PreventionRecord {
+export interface PreventionRecord extends DocumentedRecord {
   id: string
   kind: string
   product: string
   lastDate: string
   intervalDays: number
+  seasonalPause: boolean
+  pauseStartMonth?: number
+  pauseEndMonth?: number
 }
 
-export interface MedicationRecord {
+export interface MedicationRecord extends DocumentedRecord {
   id: string
   name: string
   dose: string
@@ -120,20 +135,20 @@ export interface MedicationRecord {
   active: boolean
 }
 
-export interface VetVisitRecord {
+export interface VetVisitRecord extends DocumentedRecord {
   id: string
   title: string
   date: string
   notes: string
 }
 
-export interface WeightRecord {
+export interface WeightRecord extends DocumentedRecord {
   id: string
   value: number
   date: string
 }
 
-export interface GroomingRecord {
+export interface GroomingRecord extends DocumentedRecord {
   id: string
   title: string
   lastDate: string
@@ -163,14 +178,41 @@ export interface AchievementBadge {
   unlockedAt: string
 }
 
-export interface AppData {
-  profile: DogProfile | null
-  selectedCaregiverId: string
+export interface QuizAxisVector {
+  E: number
+  C: number
+  S: number
+  F: number
+}
+
+export interface QuizResultRecord {
+  archetypeId: string
+  vector: QuizAxisVector
+  answers: Record<string, string>
+  completedAt: string
+}
+
+export interface PetData {
+  id: string
+  profile: PetProfile
   events: CareEvent[]
   health: HealthData
-  tutorialDone: boolean
   trickProgress: Record<string, TrickProgressRecord>
   badges: AchievementBadge[]
+  quizResult?: QuizResultRecord
+}
+
+export interface Household {
+  caregivers: Caregiver[]
+}
+
+export interface AppData {
+  schemaVersion: 2
+  household: Household
+  pets: PetData[]
+  selectedPetId: string
+  selectedCaregiverId: string
+  tutorialDone: boolean
 }
 
 export type DeadlineStatus = 'overdue' | 'upcoming' | 'ok'

@@ -1,57 +1,31 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { trainingPaths } from '../data/paths'
+import { levelLabels, trickLevels, tricks } from '../data/tricks'
+import { parseBackupJson } from '../lib/backup'
+import { createDemoData } from '../lib/demo'
+import { createEmptyHealth } from '../lib/migrate'
+import { withRequiredModules } from '../lib/profile'
+import { clearStoredAppData, loadAppData, persistAppData } from '../lib/storage'
 import type {
   AppData,
   CareEvent,
   CareEventType,
-  DogProfile,
+  Caregiver,
   GroomingRecord,
   HealthData,
   MedicationRecord,
+  PetData,
+  PetProfile,
   PreventionRecord,
+  QuizResultRecord,
+  TrickStatus,
   VaccinationRecord,
   VetVisitRecord,
   WeightRecord,
-  TrickStatus,
 } from '../types'
-import { createDemoData } from '../lib/demo'
-import { migrateAppData } from '../lib/migrate'
-import { withRequiredModules } from '../lib/profile'
-import { levelLabels, trickLevels, tricks } from '../data/tricks'
 
-const STORAGE_KEY = 'cuccia:complete-dog-care:v1'
-
-const emptyHealth: HealthData = {
-  vaccinations: [],
-  preventions: [],
-  medications: [],
-  visits: [],
-  weights: [],
-  grooming: [],
-}
-
-const emptyData: AppData = {
-  profile: null,
-  selectedCaregiverId: '',
-  events: [],
-  health: emptyHealth,
-  tutorialDone: false,
-  trickProgress: {},
-  badges: [],
-}
-
-const loadData = (): AppData => {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (!saved) return emptyData
-  try {
-    return migrateAppData(JSON.parse(saved) as unknown)
-  } catch {
-    return emptyData
-  }
-}
-
-const createId = () =>
-  globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
 interface EventInput {
   happenedAt?: string
@@ -65,6 +39,9 @@ type EventChanges = Pick<CareEvent, 'happenedAt' | 'caregiverId' | 'note' | 'dur
 
 interface AppStateValue {
   data: AppData
+  activePet: PetData | null
+  profile: PetProfile | null
+  caregivers: Caregiver[]
   toast: string
   addEvent: (type: CareEventType, input?: EventInput) => void
   addMedication: (record: Omit<MedicationRecord, 'id'>) => void
@@ -73,27 +50,39 @@ interface AppStateValue {
   addVisit: (record: Omit<VetVisitRecord, 'id'>) => void
   addWeight: (record: Omit<WeightRecord, 'id'>) => void
   addGrooming: (record: Omit<GroomingRecord, 'id'>) => void
-  completeOnboarding: (profile: DogProfile, health: HealthData) => void
+  addPet: (profile: PetProfile, health?: HealthData) => void
+  completeOnboarding: (profile: PetProfile, health: HealthData, caregivers: Caregiver[]) => void
   deleteEvent: (id: string) => void
+  importBackup: (json: string) => void
   loadDemo: () => void
+  removePet: (id: string) => void
   resetAll: () => void
   selectCaregiver: (id: string) => void
+  selectPet: (id: string) => void
+  updateCaregivers: (caregivers: Caregiver[]) => void
   updateEvent: (id: string, changes: EventChanges) => void
-  updateProfile: (profile: DogProfile) => void
+  updateProfile: (profile: PetProfile) => void
   completeTutorial: () => void
   restartTutorial: () => void
+  saveQuizResult: (result: QuizResultRecord) => void
   setTrickStatus: (id: string, title: string, status: TrickStatus) => void
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null)
 
-export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(loadData)
-  const [toast, setToast] = useState('')
+const updateSelectedPet = (current: AppData, update: (pet: PetData) => PetData): AppData => ({
+  ...current,
+  pets: current.pets.map((pet) => pet.id === current.selectedPetId ? update(pet) : pet),
+})
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  }, [data])
+export function AppStateProvider({ children }: { children: ReactNode }) {
+  const [data, setData] = useState<AppData>(loadAppData)
+  const [toast, setToast] = useState('')
+  const activePet = data.pets.find((pet) => pet.id === data.selectedPetId) ?? data.pets[0] ?? null
+  const profile = activePet?.profile ?? null
+  const caregivers = data.household.caregivers
+
+  useEffect(() => persistAppData(data), [data])
 
   useEffect(() => {
     if (!toast) return
@@ -102,27 +91,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [toast])
 
   const addEvent = (type: CareEventType, input: EventInput = {}) => {
-    if (!data.selectedCaregiverId) return
-    const event: CareEvent = {
-      id: createId(),
-      type,
-      caregiverId: input.caregiverId ?? data.selectedCaregiverId,
-      happenedAt: input.happenedAt ?? new Date().toISOString(),
-      ...input,
-    }
-    setData((current) => ({ ...current, events: [event, ...current.events] }))
-    setToast('Fatto — tutti in casa lo vedono ora')
+    setData((current) => {
+      if (!current.selectedCaregiverId || !current.selectedPetId) return current
+      const event: CareEvent = {
+        id: createId(),
+        type,
+        caregiverId: input.caregiverId ?? current.selectedCaregiverId,
+        happenedAt: input.happenedAt ?? new Date().toISOString(),
+        ...input,
+      }
+      return updateSelectedPet(current, (pet) => ({ ...pet, events: [event, ...pet.events] }))
+    })
+    setToast('Fatto — salvato sul dispositivo')
   }
 
   const addHealthRecord = <Key extends keyof HealthData>(key: Key, record: HealthData[Key][number]) => {
-    setData((current) => ({
-      ...current,
-      health: { ...current.health, [key]: [record, ...current.health[key]] },
-    }))
+    setData((current) => updateSelectedPet(current, (pet) => ({
+      ...pet,
+      health: { ...pet.health, [key]: [record, ...pet.health[key]] },
+    })))
   }
 
   const value = useMemo<AppStateValue>(() => ({
     data,
+    activePet,
+    profile,
+    caregivers,
     toast,
     addEvent,
     addMedication: (record) => addHealthRecord('medications', { ...record, id: createId() }),
@@ -131,82 +125,125 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     addVisit: (record) => addHealthRecord('visits', { ...record, id: createId() }),
     addWeight: (record) => addHealthRecord('weights', { ...record, id: createId() }),
     addGrooming: (record) => addHealthRecord('grooming', { ...record, id: createId() }),
-    completeOnboarding: (profile, health) => setData({
-      profile: { ...profile, trackedModules: withRequiredModules(profile.trackedModules.filter((module) => module !== 'needs'), profile.conditions) },
-      health,
-      events: [],
-      tutorialDone: false,
-      trickProgress: {},
-      badges: [],
-      selectedCaregiverId: profile.caregivers[0]?.id ?? '',
+    addPet: (newProfile, health = createEmptyHealth()) => setData((current) => {
+      const normalized = {
+        ...newProfile,
+        trackedModules: withRequiredModules(newProfile.trackedModules, newProfile.conditions, newProfile.species),
+      }
+      const pet: PetData = { id: normalized.id, profile: normalized, health, events: [], trickProgress: {}, badges: [] }
+      return { ...current, pets: [...current.pets, pet], selectedPetId: pet.id }
     }),
+    completeOnboarding: (newProfile, health, newCaregivers) => {
+      const normalized = {
+        ...newProfile,
+        trackedModules: withRequiredModules(newProfile.trackedModules, newProfile.conditions, newProfile.species),
+      }
+      setData({
+        schemaVersion: 2,
+        household: { caregivers: newCaregivers },
+        pets: [{ id: normalized.id, profile: normalized, health, events: [], trickProgress: {}, badges: [] }],
+        selectedPetId: normalized.id,
+        selectedCaregiverId: newCaregivers[0]?.id ?? '',
+        tutorialDone: false,
+      })
+    },
     deleteEvent: (id) => {
-      setData((current) => ({
-        ...current,
-        events: current.events.map((event) => event.id === id ? {
+      setData((current) => updateSelectedPet(current, (pet) => ({
+        ...pet,
+        events: pet.events.map((event) => event.id === id ? {
           ...event,
           deletedBy: current.selectedCaregiverId,
           deletedAt: new Date().toISOString(),
         } : event),
-      }))
-      setToast('Evento eliminato dal diario')
+      })))
+      setToast('Evento eliminato dal Diario')
+    },
+    importBackup: (json) => {
+      const restored = parseBackupJson(json)
+      setData(restored)
+      setToast('Backup importato — dati ripristinati')
     },
     loadDemo: () => setData(createDemoData()),
+    removePet: (id) => setData((current) => {
+      const pets = current.pets.filter((pet) => pet.id !== id)
+      return { ...current, pets, selectedPetId: pets[0]?.id ?? '' }
+    }),
     resetAll: () => {
-      localStorage.removeItem(STORAGE_KEY)
+      clearStoredAppData()
       Object.keys(localStorage)
         .filter((key) => key.startsWith('cuccia:guide-checklist:'))
         .forEach((key) => localStorage.removeItem(key))
-      setData(emptyData)
+      setData({ schemaVersion: 2, household: { caregivers: [] }, pets: [], selectedPetId: '', selectedCaregiverId: '', tutorialDone: false })
     },
     selectCaregiver: (id) => setData((current) => ({ ...current, selectedCaregiverId: id })),
+    selectPet: (id) => setData((current) => ({ ...current, selectedPetId: id })),
+    updateCaregivers: (nextCaregivers) => setData((current) => ({
+      ...current,
+      household: { caregivers: nextCaregivers },
+      selectedCaregiverId: nextCaregivers.some((item) => item.id === current.selectedCaregiverId)
+        ? current.selectedCaregiverId
+        : nextCaregivers[0]?.id ?? '',
+    })),
     updateEvent: (id, changes) => {
-      setData((current) => ({
-        ...current,
-        events: current.events.map((event) => event.id === id ? {
+      setData((current) => updateSelectedPet(current, (pet) => ({
+        ...pet,
+        events: pet.events.map((event) => event.id === id ? {
           ...event,
           ...changes,
           editedBy: current.selectedCaregiverId,
           editedAt: new Date().toISOString(),
         } : event),
-      }))
-      setToast('Modifiche salvate — la famiglia vede l’orario corretto')
+      })))
+      setToast('Modifiche salvate')
     },
-    updateProfile: (profile) => setData((current) => ({
-      ...current,
-      profile: { ...profile, trackedModules: withRequiredModules(profile.trackedModules.filter((module) => module !== 'needs'), profile.conditions) },
-    })),
+    updateProfile: (nextProfile) => setData((current) => updateSelectedPet(current, (pet) => ({
+      ...pet,
+      profile: {
+        ...nextProfile,
+        trackedModules: withRequiredModules(nextProfile.trackedModules, nextProfile.conditions, nextProfile.species),
+      },
+    }))),
     completeTutorial: () => setData((current) => ({ ...current, tutorialDone: true })),
     restartTutorial: () => setData((current) => ({ ...current, tutorialDone: false })),
-    setTrickStatus: (id, title, status) => setData((current) => {
+    saveQuizResult: (result) => {
+      setData((current) => updateSelectedPet(current, (pet) => ({ ...pet, quizResult: result })))
+      setToast(`Risultato salvato per ${profile?.name ?? 'il pet'}`)
+    },
+    setTrickStatus: (id, title, status) => setData((current) => updateSelectedPet(current, (pet) => {
       const learnedAt = status === 'imparato'
-        ? current.trickProgress[id]?.learnedAt ?? new Date().toISOString()
+        ? pet.trickProgress[id]?.learnedAt ?? new Date().toISOString()
         : undefined
-      const alreadyUnlocked = current.badges.some((badge) => badge.id === `trick-${id}`)
-      const nextProgress = { ...current.trickProgress, [id]: { status, ...(learnedAt ? { learnedAt } : {}) } }
-      const newTrickBadges = status === 'imparato' && !alreadyUnlocked
-        ? [{ id: `trick-${id}`, title, unlockedAt: learnedAt ?? new Date().toISOString() }]
-        : []
-      const newLevelBadges = trickLevels.flatMap((level) => {
-        const levelId = `level-${level}`
-        const complete = tricks.filter((trick) => trick.level === level).every((trick) => nextProgress[trick.id]?.status === 'imparato')
-        return complete && !current.badges.some((badge) => badge.id === levelId)
-          ? [{ id: levelId, title: `Livello ${levelLabels[level]} completato`, unlockedAt: new Date().toISOString() }]
-          : []
-      })
-      return {
-        ...current,
-        trickProgress: nextProgress,
-        badges: [...current.badges, ...newTrickBadges, ...newLevelBadges],
-      }
-    }),
-  }), [data, toast])
+      const progress = { ...pet.trickProgress, [id]: { status, ...(learnedAt ? { learnedAt } : {}) } }
+      const earned = (badgeId: string) => pet.badges.some((badge) => badge.id === badgeId)
+      const badges = [
+        ...(status === 'imparato' && !earned(`trick-${id}`)
+          ? [{ id: `trick-${id}`, title, unlockedAt: learnedAt ?? new Date().toISOString() }]
+          : []),
+        ...trickLevels.flatMap((level) => {
+          const badgeId = `level-${level}`
+          const complete = tricks.filter((trick) => trick.level === level)
+            .every((trick) => progress[trick.id]?.status === 'imparato')
+          return complete && !earned(badgeId)
+            ? [{ id: badgeId, title: `Livello ${levelLabels[level]} completato`, unlockedAt: new Date().toISOString() }]
+            : []
+        }),
+        ...trainingPaths.flatMap((path) => {
+          const badgeId = `path-${path.id}`
+          const complete = path.trickIds.every((trickId) => progress[trickId]?.status === 'imparato')
+          return complete && !earned(badgeId)
+            ? [{ id: badgeId, title: `Percorso ${path.title}`, unlockedAt: new Date().toISOString() }]
+            : []
+        }),
+      ]
+      return { ...pet, trickProgress: progress, badges: [...pet.badges, ...badges] }
+    })),
+  }), [activePet, caregivers, data, profile, toast])
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
 }
 
 export const useAppState = () => {
   const context = useContext(AppStateContext)
-  if (!context) throw new Error('useAppState must be used inside AppStateProvider')
+  if (!context) throw new Error('useAppState deve essere usato dentro AppStateProvider')
   return context
 }

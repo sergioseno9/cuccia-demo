@@ -1,7 +1,7 @@
 import { ContactRound, Printer } from 'lucide-react'
-import type { DogProfile, MedicationRecord } from '../types'
+import type { MedicationRecord, PetProfile } from '../types'
 
-export function PetCard({ profile, medications }: { profile: DogProfile; medications: MedicationRecord[] }) {
+export function PetCard({ profile, medications }: { profile: PetProfile; medications: MedicationRecord[] }) {
   const activeMedications = medications.filter((record) => record.active)
   const feeding = [profile.feeding.food, profile.feeding.portion, profile.feeding.schedule].filter(Boolean).join(' · ')
 

@@ -1,5 +1,6 @@
 import {
   Cloud,
+  Box,
   Droplets,
   Footprints,
   NotebookPen,
@@ -20,6 +21,7 @@ const icons: Record<CareEventType, LucideIcon> = {
   walk: Footprints,
   sleep: MoonStar,
   grooming: Scissors,
+  litterbox: Box,
   medication: Pill,
   note: NotebookPen,
 }

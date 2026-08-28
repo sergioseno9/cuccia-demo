@@ -8,12 +8,17 @@ import { useAppState } from '../state/AppState'
 export function GuideReaderScreen() {
   const { guideId = '' } = useParams()
   const navigate = useNavigate()
-  const { data } = useAppState()
+  const { profile } = useAppState()
   const guide = getGuide(guideId)
   const { checkedItems, toggleItem } = useGuideChecklist(guideId)
 
-  if (!guide || (guide.fase !== 'tutte' && guide.fase !== data.profile!.lifePhase)) return <Navigate to="/scopri" replace />
-  const related = (guide.related ?? []).map(getGuide).filter(Boolean)
+  if (!profile || guide?.species !== profile.species || (guide.fase !== 'tutte' && guide.fase !== profile.lifePhase)) return <Navigate to="/scopri" replace />
+  const related = (guide.related ?? []).flatMap((id) => {
+    const item = getGuide(id)
+    return item && item.species === profile.species && (item.fase === 'tutte' || item.fase === profile.lifePhase)
+      ? [item]
+      : []
+  })
 
   return (
     <article className="screen guide-reader-screen">

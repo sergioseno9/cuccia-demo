@@ -2,6 +2,7 @@ import { Check } from 'lucide-react'
 import { useEffect } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
+import { PetSwitcher } from './components/PetSwitcher'
 import { TutorialCoach } from './components/TutorialCoach'
 import { Onboarding } from './onboarding/Onboarding'
 import { CareScreen } from './screens/CareScreen'
@@ -28,6 +29,7 @@ function RoutedApp() {
     <div className="app-shell">
       <ScrollToTop />
       <div className="app-frame">
+        <PetSwitcher />
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/diario" element={<DiaryScreen />} />
@@ -52,7 +54,7 @@ function RoutedApp() {
 
 function App() {
   const { data } = useAppState()
-  if (!data.profile) return <Onboarding />
+  if (!data.pets.length) return <Onboarding />
   return <HashRouter><RoutedApp /></HashRouter>
 }
 

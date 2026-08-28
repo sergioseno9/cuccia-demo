@@ -1,58 +1,72 @@
-import { conditionIds, lifePhaseIds, modulePresets, trackedModuleIds, withRequiredModules } from './profile'
-import type { AchievementBadge, AppData, CareEvent, CareEventType, Caregiver, DogCondition, DogDocument, DogProfile, GroomingRecord, HealthData, LifePhase, TrackedModule, TrickProgressRecord, TrickStatus } from '../types'
+import { conditionIds, lifePhaseIds, modulePresets, trackedModuleIds, withRequiredModules } from './profile.ts'
+import {
+  isRecord,
+  migrateBadges,
+  migrateCaregivers,
+  migrateDocuments,
+  migrateEvents,
+  migrateHealth,
+  migrateQuizResult,
+  migrateTrickProgress,
+  optionalNumber,
+  text,
+} from './migrateRecords.ts'
+import type {
+  AppData,
+  GroomingRecord,
+  HealthData,
+  LifePhase,
+  PetCondition,
+  PetData,
+  PetProfile,
+  PetSpecies,
+  TrackedModule,
+} from '../types'
 
-const eventTypes: CareEventType[] = ['meal', 'water', 'pee', 'poop', 'walk', 'sleep', 'grooming', 'medication', 'note']
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
-const text = (value: unknown) => typeof value === 'string' ? value : ''
-const optionalText = (value: unknown) => typeof value === 'string' && value ? value : undefined
-const optionalNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : undefined
-const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+export const createEmptyHealth = (): HealthData => ({
+  vaccinations: [], preventions: [], medications: [], visits: [], weights: [], grooming: [],
+})
 
-const migrateCaregivers = (value: unknown): Caregiver[] => {
-  if (!Array.isArray(value)) return []
-  return value.filter(isRecord).map((caregiver, index) => ({
-    id: text(caregiver.id) || createId(),
-    name: text(caregiver.name) || `Caregiver ${index + 1}`,
-    role: text(caregiver.role) || 'Caregiver',
-    color: text(caregiver.color) || '#D9694A',
-  }))
-}
+export const createEmptyAppData = (): AppData => ({
+  schemaVersion: 2,
+  household: { caregivers: [] },
+  pets: [],
+  selectedPetId: '',
+  selectedCaregiverId: '',
+  tutorialDone: false,
+})
 
-const migrateProfile = (value: unknown): DogProfile | null => {
+const migrateProfile = (value: unknown, fallbackSpecies: PetSpecies, fallbackId: string): PetProfile | null => {
   if (!isRecord(value)) return null
+  const species: PetSpecies = value.species === 'gatto' ? 'gatto' : fallbackSpecies
   const lifePhase: LifePhase = lifePhaseIds.includes(value.lifePhase as LifePhase)
     ? value.lifePhase as LifePhase
     : 'adulto'
   const conditions = Array.isArray(value.conditions)
-    ? value.conditions.filter((item): item is DogCondition => conditionIds.includes(item as DogCondition))
+    ? value.conditions.filter((item): item is PetCondition => conditionIds.includes(item as PetCondition))
     : []
+  const availableModules = trackedModuleIds(species)
   const rawModules = Array.isArray(value.trackedModules) ? value.trackedModules : []
   const savedModules = rawModules.length
-    ? rawModules.filter((item): item is TrackedModule => trackedModuleIds.includes(item as TrackedModule))
-    : modulePresets[lifePhase]
-  const migratedModules = rawModules.includes('outings')
-    ? savedModules
-    : [...savedModules, 'outings' as const]
-  const legacyConditionNotes = typeof value.conditions === 'string' ? value.conditions : ''
+    ? rawModules.filter((item): item is TrackedModule => availableModules.includes(item as TrackedModule) || item === 'needs')
+    : modulePresets(species, lifePhase)
   const outingIntervalHours = optionalNumber(value.outingIntervalHours) ?? optionalNumber(value.needsIntervalHours)
   const feeding = isRecord(value.feeding) ? value.feeding : {}
-  const documents: DogDocument[] = Array.isArray(value.documents)
-    ? value.documents.filter(isRecord).map((document) => ({
-      id: text(document.id) || createId(),
-      name: text(document.name) || 'Documento',
-      kind: document.kind === 'libretto' || document.kind === 'pedigree' || document.kind === 'ricevuta' ? document.kind : 'altro',
-      dataUrl: text(document.dataUrl),
-      addedAt: text(document.addedAt) || new Date().toISOString(),
-    }))
-    : []
+  const indoorOutdoor = value.indoorOutdoor === 'outdoor' || value.indoorOutdoor === 'both'
+    ? value.indoorOutdoor
+    : 'indoor'
 
   return {
+    id: text(value.id) || fallbackId,
     createdAt: text(value.createdAt) || new Date().toISOString(),
+    species,
     lifePhase,
-    trackedModules: withRequiredModules(migratedModules, conditions),
+    trackedModules: withRequiredModules(savedModules, conditions, species),
     conditions,
-    conditionNotes: text(value.conditionNotes) || legacyConditionNotes,
+    conditionNotes: text(value.conditionNotes) || (typeof value.conditions === 'string' ? value.conditions : ''),
+    medicalNotes: text(value.medicalNotes),
     ...(outingIntervalHours && outingIntervalHours > 0 ? { outingIntervalHours } : {}),
+    ...(species === 'gatto' ? { indoorOutdoor } : {}),
     name: text(value.name),
     photo: text(value.photo),
     birthDate: text(value.birthDate),
@@ -67,98 +81,97 @@ const migrateProfile = (value: unknown): DogProfile | null => {
     groomerName: text(value.groomerName),
     groomerPhone: text(value.groomerPhone),
     feeding: {
-      food: text(feeding.food),
-      portion: text(feeding.portion),
-      schedule: text(feeding.schedule),
-      notes: text(feeding.notes),
+      food: text(feeding.food), portion: text(feeding.portion),
+      schedule: text(feeding.schedule), notes: text(feeding.notes),
     },
     allergies: text(value.allergies),
     notes: text(value.notes),
     annualCheckDate: text(value.annualCheckDate),
     insuranceRenewalDate: text(value.insuranceRenewalDate),
     microchipRenewalDate: text(value.microchipRenewalDate),
-    documents,
-    caregivers: migrateCaregivers(value.caregivers),
+    documents: migrateDocuments(value.documents),
   }
 }
 
-const migrateEvents = (value: unknown): CareEvent[] => {
-  if (!Array.isArray(value)) return []
-  return value.filter(isRecord).map((event) => ({
-    id: text(event.id) || createId(),
-    type: eventTypes.includes(event.type as CareEventType) ? event.type as CareEventType : 'note',
-    caregiverId: text(event.caregiverId) || text(event.authorId),
-    happenedAt: text(event.happenedAt) || new Date().toISOString(),
-    note: optionalText(event.note) ?? optionalText(event.detail),
-    durationMin: optionalNumber(event.durationMin) ?? optionalNumber(event.durationMinutes),
-    medicationId: optionalText(event.medicationId),
-    editedBy: optionalText(event.editedBy),
-    editedAt: optionalText(event.editedAt),
-    deletedBy: optionalText(event.deletedBy),
-    deletedAt: optionalText(event.deletedAt),
-  }))
-}
-
-const records = <Type>(value: unknown) => Array.isArray(value) ? value as Type[] : []
-
-const migrateHealth = (value: unknown): HealthData => {
-  const health = isRecord(value) ? value : {}
+const migratePet = (value: unknown, index: number): PetData | null => {
+  if (!isRecord(value)) return null
+  const petId = text(value.id) || (isRecord(value.profile) ? text(value.profile.id) : '') || `pet-${index + 1}`
+  const fallbackSpecies: PetSpecies = value.species === 'gatto' ? 'gatto' : 'cane'
+  const profile = migrateProfile(value.profile ?? value, fallbackSpecies, petId)
+  if (!profile) return null
+  const quizResult = migrateQuizResult(value.quizResult)
   return {
-    vaccinations: records(health.vaccinations),
-    preventions: records(health.preventions),
-    medications: records(health.medications),
-    visits: records(health.visits),
-    weights: records(health.weights),
-    grooming: records(health.grooming),
+    id: petId,
+    profile: { ...profile, id: petId },
+    events: migrateEvents(value.events),
+    health: migrateHealth(value.health),
+    trickProgress: migrateTrickProgress(value.trickProgress),
+    badges: migrateBadges(value.badges),
+    ...(quizResult ? { quizResult } : {}),
   }
 }
 
-const trickStatuses: TrickStatus[] = ['da_imparare', 'in_corso', 'imparato']
-
-const migrateTrickProgress = (value: unknown) => {
-  if (!isRecord(value)) return {}
-  return Object.entries(value).reduce<Record<string, TrickProgressRecord>>((result, [id, progress]) => {
-    if (!isRecord(progress) || !trickStatuses.includes(progress.status as TrickStatus)) return result
-    result[id] = {
-      status: progress.status as TrickStatus,
-      ...(optionalText(progress.learnedAt) ? { learnedAt: optionalText(progress.learnedAt) } : {}),
-    }
-    return result
-  }, {})
-}
-
-const migrateBadges = (value: unknown): AchievementBadge[] => Array.isArray(value)
-  ? value.filter(isRecord).map((badge) => ({
-    id: text(badge.id) || createId(),
-    title: text(badge.title) || 'Traguardo',
-    unlockedAt: text(badge.unlockedAt) || new Date().toISOString(),
-  }))
-  : []
-
-export const migrateAppData = (value: unknown): AppData => {
-  const source = isRecord(value) ? value : {}
-  const profile = migrateProfile(source.profile)
-  const selected = text(source.selectedCaregiverId)
-  const events = migrateEvents(source.events)
-  const health = migrateHealth(source.health)
-  const legacyGrooming: GroomingRecord[] = health.grooming.length ? [] : events
+const addLegacyGrooming = (pet: PetData): PetData => {
+  if (pet.health.grooming.length) return pet
+  const grooming = pet.events
     .filter((event) => event.type === 'grooming' && !event.deletedAt)
-    .map((event) => ({
+    .map((event): GroomingRecord => ({
       id: `migrated-${event.id}`,
       title: event.note || 'Toelettatura / bagno',
       lastDate: event.happenedAt.slice(0, 10),
       intervalWeeks: 0,
       notes: 'Importato dal Diario precedente.',
+      documents: [],
     }))
-  return {
-    profile,
-    events,
-    health: { ...health, grooming: [...health.grooming, ...legacyGrooming] },
-    tutorialDone: typeof source.tutorialDone === 'boolean' ? source.tutorialDone : false,
+  return { ...pet, health: { ...pet.health, grooming } }
+}
+
+export const migrateAppData = (value: unknown): AppData => {
+  const source = isRecord(value) ? value : {}
+  if (Array.isArray(source.pets)) {
+    const pets = source.pets
+      .map((pet, index) => migratePet(pet, index))
+      .filter((pet): pet is PetData => pet !== null)
+      .map(addLegacyGrooming)
+    const household = isRecord(source.household) ? source.household : {}
+    const caregivers = migrateCaregivers(household.caregivers)
+    const selectedPet = text(source.selectedPetId)
+    const selectedCaregiver = text(source.selectedCaregiverId)
+    return {
+      schemaVersion: 2,
+      household: { caregivers },
+      pets,
+      selectedPetId: pets.some((pet) => pet.id === selectedPet) ? selectedPet : pets[0]?.id ?? '',
+      selectedCaregiverId: caregivers.some((item) => item.id === selectedCaregiver)
+        ? selectedCaregiver
+        : caregivers[0]?.id ?? '',
+      tutorialDone: typeof source.tutorialDone === 'boolean' ? source.tutorialDone : false,
+    }
+  }
+
+  const legacyProfile = migrateProfile(source.profile, 'cane', 'legacy-pet-1')
+  if (!legacyProfile) return createEmptyAppData()
+  const rawProfile = isRecord(source.profile) ? source.profile : {}
+  const caregivers = migrateCaregivers(rawProfile.caregivers)
+  const selectedCaregiver = text(source.selectedCaregiverId)
+  const quizResult = migrateQuizResult(source.quizResult)
+  const pet = addLegacyGrooming({
+    id: legacyProfile.id,
+    profile: legacyProfile,
+    events: migrateEvents(source.events),
+    health: migrateHealth(source.health),
     trickProgress: migrateTrickProgress(source.trickProgress),
     badges: migrateBadges(source.badges),
-    selectedCaregiverId: profile?.caregivers.some((caregiver) => caregiver.id === selected)
-      ? selected
-      : profile?.caregivers[0]?.id ?? '',
+    ...(quizResult ? { quizResult } : {}),
+  })
+  return {
+    schemaVersion: 2,
+    household: { caregivers },
+    pets: [pet],
+    selectedPetId: pet.id,
+    selectedCaregiverId: caregivers.some((item) => item.id === selectedCaregiver)
+      ? selectedCaregiver
+      : caregivers[0]?.id ?? '',
+    tutorialDone: typeof source.tutorialDone === 'boolean' ? source.tutorialDone : false,
   }
 }

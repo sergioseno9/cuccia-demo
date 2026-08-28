@@ -17,6 +17,8 @@ import './styles/personalization.css'
 import './styles/state-cards.css'
 import './styles/accessibility.css'
 import './styles/responsive.css'
+import './styles/quality-evolution.css'
+import './styles/quiz.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

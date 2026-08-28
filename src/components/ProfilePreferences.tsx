@@ -3,18 +3,18 @@ import {
   conditionIds,
   conditionLabels,
   lifePhaseIds,
-  lifePhaseLabels,
+  lifePhaseLabel,
   moduleLabels,
   modulePresets,
   requiredModules,
   trackedModuleIds,
   withRequiredModules,
 } from '../lib/profile'
-import type { DogCondition, DogProfile, LifePhase, TrackedModule } from '../types'
+import type { LifePhase, PetCondition, PetProfile, TrackedModule } from '../types'
 
 interface PreferencesProps {
-  profile: DogProfile
-  onChange: (profile: DogProfile) => void
+  profile: PetProfile
+  onChange: (profile: PetProfile) => void
   resetModulesOnPhase?: boolean
 }
 
@@ -29,15 +29,15 @@ export function PhasePicker({ profile, onChange, resetModulesOnPhase = false }: 
     ...profile,
     lifePhase,
     trackedModules: resetModulesOnPhase
-      ? withRequiredModules(modulePresets[lifePhase], profile.conditions)
+      ? withRequiredModules(modulePresets(profile.species, lifePhase), profile.conditions, profile.species)
       : profile.trackedModules,
   })
 
-  return <div className="phase-picker">{lifePhaseIds.map((phase) => <button type="button" key={phase} className={profile.lifePhase === phase ? 'is-active' : ''} onClick={() => selectPhase(phase)} aria-pressed={profile.lifePhase === phase}><span>{lifePhaseLabels[phase]}</span><small>{phaseDescriptions[phase]}</small></button>)}</div>
+  return <div className="phase-picker">{lifePhaseIds.map((phase) => <button type="button" key={phase} className={profile.lifePhase === phase ? 'is-active' : ''} onClick={() => selectPhase(phase)} aria-pressed={profile.lifePhase === phase}><span>{lifePhaseLabel(phase, profile.species)}</span><small>{phaseDescriptions[phase]}</small></button>)}</div>
 }
 
 export function TrackingPreferences({ profile, onChange }: PreferencesProps) {
-  const lockedModules = requiredModules(profile.conditions)
+  const lockedModules = requiredModules(profile.conditions, profile.species)
 
   const toggleModule = (module: TrackedModule) => {
     if (lockedModules.includes(module)) return
@@ -49,8 +49,8 @@ export function TrackingPreferences({ profile, onChange }: PreferencesProps) {
 
   return (
     <div className="tracking-preferences">
-      <div className="preferences-heading"><SlidersHorizontal size={19} /><div><strong>Cosa seguo per {profile.name || 'il mio cane'}</strong><p>La fase propone un punto di partenza. Puoi cambiare tutto quando vuoi.</p></div></div>
-      <div className="toggle-grid">{trackedModuleIds.map((module) => {
+      <div className="preferences-heading"><SlidersHorizontal size={19} /><div><strong>Cosa seguo per {profile.name || 'il mio animale'}</strong><p>Specie e fase propongono un punto di partenza. Puoi cambiare tutto quando vuoi.</p></div></div>
+      <div className="toggle-grid">{trackedModuleIds(profile.species).map((module) => {
         const active = profile.trackedModules.includes(module)
         const locked = lockedModules.includes(module)
         return <button type="button" key={module} className={active ? 'is-active' : ''} onClick={() => toggleModule(module)} aria-pressed={active}><span><Check size={14} /></span><strong>{moduleLabels[module]}</strong>{locked && <small>da condizione</small>}</button>
@@ -61,12 +61,12 @@ export function TrackingPreferences({ profile, onChange }: PreferencesProps) {
 }
 
 export function ConditionPreferences({ profile, onChange }: PreferencesProps) {
-  const toggleCondition = (condition: DogCondition) => {
+  const toggleCondition = (condition: PetCondition) => {
     const conditions = profile.conditions.includes(condition)
       ? profile.conditions.filter((item) => item !== condition)
       : [...profile.conditions, condition]
-    const visibleModules = profile.trackedModules.filter((module) => module !== 'needs')
-    onChange({ ...profile, conditions, trackedModules: withRequiredModules(visibleModules, conditions) })
+    const visibleModules = profile.trackedModules.filter((module) => module !== 'needs' && module !== 'litterbox')
+    onChange({ ...profile, conditions, trackedModules: withRequiredModules(visibleModules, conditions, profile.species) })
   }
 
   return (

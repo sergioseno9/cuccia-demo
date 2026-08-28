@@ -1,15 +1,18 @@
-import type { AppData, CareEvent, DogProfile, HealthData } from '../types'
-import { isoDateFromNow } from './date'
+import type { AppData, CareEvent, HealthData, PetData, PetProfile } from '../types'
+import { isoDateFromNow } from './date.ts'
 
 const minutesAgo = (minutes: number) =>
   new Date(Date.now() - minutes * 60_000).toISOString()
 
-export const createDemoProfile = (): DogProfile => ({
+export const createDemoProfile = (): PetProfile => ({
+  id: 'milo',
   createdAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+  species: 'cane',
   lifePhase: 'adulto',
   trackedModules: ['outings', 'weight', 'grooming'],
   conditions: [],
   conditionNotes: '',
+  medicalNotes: 'Nessuna condizione aggiunta.',
   outingIntervalHours: 3,
   name: 'Milo',
   photo: '',
@@ -36,92 +39,75 @@ export const createDemoProfile = (): DogProfile => ({
   insuranceRenewalDate: isoDateFromNow(110),
   microchipRenewalDate: isoDateFromNow(180),
   documents: [],
-  caregivers: [
-    { id: 'giulia', name: 'Giulia', role: 'Genitore', color: '#D9694A' },
-    { id: 'marco', name: 'Marco', role: 'Genitore', color: '#F2B24C' },
-    { id: 'nonna', name: 'Nonna', role: 'Supporto', color: '#8FA083' },
-  ],
 })
 
 export const createDemoHealth = (): HealthData => ({
-  vaccinations: [
-    {
-      id: 'vax-1',
-      name: 'Vaccino polivalente',
-      administeredDate: isoDateFromNow(-24),
-      nextDate: isoDateFromNow(17),
-      notes: 'Richiamo indicato dal veterinario.',
-    },
-  ],
+  vaccinations: [{
+    id: 'vax-1',
+    name: 'Vaccino polivalente',
+    administeredDate: isoDateFromNow(-24),
+    nextDate: isoDateFromNow(17),
+    lotNumber: 'LOTTO-DEMO',
+    expiryDate: isoDateFromNow(160),
+    notes: 'Richiamo indicato dal veterinario.',
+    documents: [],
+  }],
   preventions: [
     {
-      id: 'prev-1',
-      kind: 'Pulci e zecche',
-      product: 'Compresse mensili',
-      lastDate: isoDateFromNow(-27),
-      intervalDays: 30,
+      id: 'prev-1', kind: 'Pulci e zecche', product: 'Compresse mensili',
+      lastDate: isoDateFromNow(-27), intervalDays: 30, seasonalPause: false, documents: [],
     },
     {
-      id: 'prev-2',
-      kind: 'Sverminazione',
-      product: 'Prodotto indicato dal veterinario',
-      lastDate: isoDateFromNow(-45),
-      intervalDays: 90,
+      id: 'prev-2', kind: 'Sverminazione', product: 'Prodotto indicato dal veterinario',
+      lastDate: isoDateFromNow(-45), intervalDays: 90, seasonalPause: false, documents: [],
     },
   ],
-  medications: [
-    {
-      id: 'med-1',
-      name: 'Integratore cucciolo',
-      dose: '1 compressa',
-      times: ['08:00', '20:00'],
-      startDate: isoDateFromNow(-5),
-      endDate: isoDateFromNow(10),
-      active: true,
-    },
-  ],
+  medications: [{
+    id: 'med-1', name: 'Integratore demo', dose: '1 compressa', times: ['08:00', '20:00'],
+    startDate: isoDateFromNow(-5), endDate: isoDateFromNow(10), active: true, documents: [],
+  }],
   visits: [
-    {
-      id: 'visit-1',
-      title: 'Controllo crescita',
-      date: isoDateFromNow(2),
-      notes: 'Portare il libretto sanitario.',
-    },
-    {
-      id: 'visit-0',
-      title: 'Prima visita',
-      date: isoDateFromNow(-35),
-      notes: 'Controllo generale regolare.',
-    },
+    { id: 'visit-1', title: 'Controllo', date: isoDateFromNow(2), notes: 'Portare il libretto sanitario.', documents: [] },
+    { id: 'visit-0', title: 'Prima visita', date: isoDateFromNow(-35), notes: 'Controllo generale regolare.', documents: [] },
   ],
   weights: [
-    { id: 'weight-1', value: 5.8, date: isoDateFromNow(-42) },
-    { id: 'weight-2', value: 6.6, date: isoDateFromNow(-21) },
-    { id: 'weight-3', value: 7.4, date: isoDateFromNow(0) },
+    { id: 'weight-1', value: 5.8, date: isoDateFromNow(-42), documents: [] },
+    { id: 'weight-2', value: 6.6, date: isoDateFromNow(-21), documents: [] },
+    { id: 'weight-3', value: 7.4, date: isoDateFromNow(0), documents: [] },
   ],
-  grooming: [
-    { id: 'grooming-1', title: 'Bagno e spazzolatura', lastDate: isoDateFromNow(-18), intervalWeeks: 4, notes: 'Prodotti delicati.' },
-  ],
+  grooming: [{
+    id: 'grooming-1', title: 'Bagno e spazzolatura', lastDate: isoDateFromNow(-18),
+    intervalWeeks: 4, notes: 'Prodotti delicati.', documents: [],
+  }],
 })
 
 export const createDemoEvents = (): CareEvent[] => [
   { id: 'event-1', type: 'note', caregiverId: 'giulia', happenedAt: minutesAgo(18), note: 'Tutto tranquillo a casa.' },
   { id: 'event-2', type: 'meal', caregiverId: 'marco', happenedAt: minutesAgo(31) },
   { id: 'event-3', type: 'walk', caregiverId: 'nonna', happenedAt: minutesAgo(76), durationMin: 32 },
-  { id: 'event-4', type: 'note', caregiverId: 'giulia', happenedAt: minutesAgo(112), note: 'Ha riposato tranquillo.' },
   { id: 'event-5', type: 'walk', caregiverId: 'marco', happenedAt: minutesAgo(240), durationMin: 18 },
   { id: 'event-6', type: 'meal', caregiverId: 'giulia', happenedAt: minutesAgo(275) },
-  { id: 'event-7', type: 'walk', caregiverId: 'giulia', happenedAt: minutesAgo(410), durationMin: 22 },
-  { id: 'event-8', type: 'note', caregiverId: 'marco', happenedAt: minutesAgo(440), note: 'Tutto regolare.' },
   { id: 'event-10', type: 'walk', caregiverId: 'marco', happenedAt: minutesAgo(1_640), durationMin: 27 },
 ]
 
-export const createDemoData = (): AppData => ({
+const createDemoPet = (): PetData => ({
+  id: 'milo',
   profile: createDemoProfile(),
-  selectedCaregiverId: 'giulia',
   events: createDemoEvents(),
   health: createDemoHealth(),
-  tutorialDone: false,
   trickProgress: {},
   badges: [],
+})
+
+export const createDemoData = (): AppData => ({
+  schemaVersion: 2,
+  household: { caregivers: [
+    { id: 'giulia', name: 'Giulia', role: 'Famiglia', color: '#D9694A' },
+    { id: 'marco', name: 'Marco', role: 'Famiglia', color: '#F2B24C' },
+    { id: 'nonna', name: 'Nonna', role: 'Supporto', color: '#8FA083' },
+  ] },
+  pets: [createDemoPet()],
+  selectedPetId: 'milo',
+  selectedCaregiverId: 'giulia',
+  tutorialDone: false,
 })

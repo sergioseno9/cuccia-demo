@@ -1,3 +1,5 @@
+import type { PetSpecies } from '../types'
+
 export type GuideSection =
   | { type: 'text'; heading?: string; body: string }
   | { type: 'steps'; heading?: string; items: string[] }
@@ -8,6 +10,7 @@ export type GuideSection =
 
 export type Guide = {
   id: string
+  species: PetSpecies
   category: 'cucciolo' | 'strumenti'
   title: string
   subtitle?: string
@@ -22,9 +25,9 @@ export const GLOBAL_GUIDE_DISCLAIMER = 'Questa guida è divulgativa e non sostit
 
 const generalVet = 'Se noti un cambiamento improvviso, sintomi fisici, dolore, forte abbattimento o qualcosa che ti preoccupa, contatta il veterinario. Questa guida non può valutare la salute del tuo cucciolo.'
 
-export const guides: Guide[] = [
+const guideSource: Array<Omit<Guide, 'species'> & { species?: PetSpecies }> = [
   {
-    id: 'puppy-blues', category: 'cucciolo', title: 'Ti senti sopraffatto? È normale.', subtitle: 'Il “puppy blues” spiegato senza giudizio.', readingMinutes: 2, fase: 'cucciolo', triggers: ['arrivo', 'caos'],
+    id: 'puppy-blues', species: 'cane', category: 'cucciolo', title: 'Ti senti sopraffatto? È normale.', subtitle: 'Il “puppy blues” spiegato senza giudizio.', readingMinutes: 2, fase: 'cucciolo', triggers: ['arrivo', 'caos'],
     sections: [
       { type: 'text', body: 'I primi giorni con un cucciolo sono spesso più difficili di quanto ti abbiano detto. Stanchezza, frustrazione, un po’ di senso di colpa (“ma cosa ho fatto?”): è il cosiddetto puppy blues. Non è una diagnosi clinica ed è comune. Non significa che non ami il cucciolo, né che non sei adatto.' },
       { type: 'text', heading: 'Perché succede', body: 'Poco sonno, una routine nuova, supervisione costante, decisioni piccole e continue. Sentirsi sopraffatti qui non è debolezza: è una reazione normale a un carico reale. Tende a ridursi man mano che entrate in una routine.' },
@@ -33,7 +36,7 @@ export const guides: Guide[] = [
     ], related: ['primi-mesi', 'routine'],
   },
   {
-    id: 'notti-tranquille', category: 'cucciolo', title: 'Piange di notte: come avere notti più tranquille.', readingMinutes: 4, fase: 'cucciolo', triggers: ['notte'],
+    id: 'notti-tranquille', species: 'cane', category: 'cucciolo', title: 'Piange di notte: come avere notti più tranquille.', readingMinutes: 4, fase: 'cucciolo', triggers: ['notte'],
     sections: [
       { type: 'text', heading: 'Perché piange', body: 'Non lo fa per dispetto né per manipolarti. Ha appena perso mamma, fratelli e odori familiari; si sente solo; spesso ha bisogno di fare pipì; a volte ha caldo, freddo, fame o è disorientato. Con una routine coerente molti cuccioli migliorano gradualmente, ma tempi e risvegli variano molto.' },
       { type: 'list', heading: 'Dove farlo dormire', items: ['Cuccia o trasportino in camera tua: spesso è la scelta migliore nelle prime settimane. Si sente vicino e gestisci tu le uscite notturne.', 'Zona sicura in un’altra stanza: può diventare autonomo prima, ma spesso piange di più i primi giorni.', 'Nel tuo letto: può dormire subito, ma è difficile tornare indietro e c’è rischio di schiacciarlo. È sconsigliato finché non controlla i bisogni.', 'Una soluzione equilibrata è tenere la cuccia in camera i primi giorni e poi spostarla gradualmente.'] },
@@ -45,7 +48,7 @@ export const guides: Guide[] = [
     ], related: ['stop-pipi', 'routine'],
   },
   {
-    id: 'stop-pipi', category: 'cucciolo', title: 'Stop pipì in casa: il piano rapido.', readingMinutes: 5, fase: 'cucciolo', triggers: ['pipi'],
+    id: 'stop-pipi', species: 'cane', category: 'cucciolo', title: 'Stop pipì in casa: il piano rapido.', readingMinutes: 5, fase: 'cucciolo', triggers: ['pipi'],
     sections: [
       { type: 'list', heading: 'Tre cose da accettare prima di iniziare', items: ['Gli incidenti sono inevitabili: è fisiologia, non un fallimento.', 'Nei cuccioli giovani il controllo della vescica è immaturo: servono opportunità frequenti.', 'Sgridare a posteriori non funziona: il cucciolo non collega la sgridata alla pipì di poco prima e impara solo a nascondersi.'] },
       { type: 'text', heading: 'Il principio centrale', body: 'Non aspettare che sbagli. Portalo nel posto giusto nei momenti in cui è più probabile che debba farla e premia subito quando la fa lì. Anticipa la pipì giusta così tante volte che il posto giusto diventa il normale.' },
@@ -66,6 +69,8 @@ export const guides: Guide[] = [
   { id: 'routine-7-giorni', category: 'strumenti', title: 'Routine dei primi sette giorni.', readingMinutes: 2, fase: 'cucciolo', triggers: ['arrivo', 'routine'], sections: [{ type: 'checklist', heading: 'Le ancore della giornata', items: ['Uscita tranquilla appena sveglio.', 'Pasti a orari abbastanza regolari.', 'Pochi minuti di gioco gentile e guidato.', 'Pisolini frequenti in una zona calma.', 'Uscita dopo sonno, pappa e gioco.', 'Routine serale lenta e prevedibile.', 'Una sola priorità educativa per volta.'] }, { type: 'vet', body: generalVet }], related: ['routine', 'notti-tranquille'] },
   { id: '10-regole', category: 'strumenti', title: 'Le dieci regole anti-panico.', readingMinutes: 2, fase: 'cucciolo', triggers: ['caos'], sections: [{ type: 'checklist', heading: 'Da tenere a mente', items: ['Una priorità alla volta.', 'Premia ciò che vuoi rivedere.', 'Mai punizioni fisiche o metodi coercitivi.', 'Pisolini e calma sono parte della routine.', 'Gli incidenti non sono dispetti.', 'Le sessioni educative restano brevi.', 'Tutta la famiglia usa le stesse parole.', 'Una zona sicura riduce gli stimoli.', 'Chiedere aiuto non è un fallimento.', 'Per i dubbi di salute si chiama il veterinario.'] }, { type: 'vet', body: generalVet }], related: ['puppy-blues', 'routine'] },
 ]
+
+export const guides: Guide[] = guideSource.map((guide) => ({ ...guide, species: guide.species ?? 'cane' }))
 
 export const getGuide = (id: string) => guides.find((guide) => guide.id === id)
 
