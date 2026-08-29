@@ -26,7 +26,7 @@ h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
 
 /* Header animali */
 .pet-switcher { gap: 12px; padding: 20px 24px 12px; border: 0; background: rgba(253, 252, 250, .96); backdrop-filter: blur(16px); }
-.pet-switcher-list { gap: 12px; }
+.pet-switcher-list { gap: 12px; margin: -6px; padding: 6px; }
 .pet-switcher-list button { min-width: 54px; min-height: 54px; padding: 0; border: 0; border-radius: 50%; }
 .pet-switcher-list button.is-selected { border: 0; background: transparent; box-shadow: 0 0 0 3px var(--canvas), 0 0 0 5px rgba(217, 105, 74, .34); }
 .pet-switcher-avatar { width: 54px; height: 54px; border-radius: 50%; }

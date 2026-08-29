@@ -274,10 +274,12 @@ body { font-size: 16px; line-height: 1.55; }
 .conditions-picker label { min-height: 44px; }
 
 /* Tutorial */
-.tutorial-layer { position: fixed; z-index: 60; inset: 0; pointer-events: none; }
-.tutorial-scrim { position: absolute; inset: 0; background: rgba(43,35,32,.72); }
-.tutorial-highlight { position: fixed; z-index: 1; border: 3px solid var(--honey); border-radius: 18px; box-shadow: 0 0 0 9999px rgba(43,35,32,.18), 0 0 28px rgba(242,178,76,.4); }
-.tutorial-card { position: fixed; z-index: 2; left: 50%; bottom: 104px; width: min(calc(100% - 28px), 520px); padding: 22px; border-radius: 20px; background: var(--cream); box-shadow: 0 22px 70px rgba(43,35,32,.3); transform: translateX(-50%); pointer-events: auto; }
+.tutorial-layer { position: fixed; z-index: 60; inset: 0; overflow: hidden; pointer-events: auto; touch-action: none; overscroll-behavior: contain; }
+.tutorial-scrim { position: absolute; inset: 0; background: rgba(43,35,32,.72); pointer-events: auto; touch-action: none; }
+.tutorial-highlight { position: fixed; z-index: 1; border: 3px solid var(--honey); border-radius: 18px; box-shadow: 0 0 0 9999px rgba(43,35,32,.18), 0 0 28px rgba(242,178,76,.4); pointer-events: none; }
+.tutorial-card { position: fixed; z-index: 2; left: 50%; bottom: 104px; width: min(calc(100% - 28px), 520px); padding: 22px; border-radius: 20px; background: var(--cream); box-shadow: 0 22px 70px rgba(43,35,32,.3); transform: translateX(-50%); pointer-events: none; }
+.tutorial-card.is-top { top: 24px; bottom: auto; }
+.tutorial-card button { pointer-events: auto; }
 .tutorial-card h2 { margin: 3px 0 9px; font-size: 29px; line-height: 1.08; }
 .tutorial-card > p:not(.eyebrow) { margin: 0; color: var(--taupe); font-size: 16px; line-height: 1.6; }
 .tutorial-skip { min-height: 44px; display: flex; align-items: center; gap: 6px; margin: -8px -7px 0 auto; border: 0; background: transparent; color: var(--taupe); font-size: 14px; font-weight: 700; cursor: pointer; }

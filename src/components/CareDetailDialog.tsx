@@ -23,8 +23,8 @@ const sectionTitles: Record<CareSection, string> = {
   profile: 'Microchip e condizioni',
 }
 
-function SectionTitle({ icon: Icon, title, onAdd }: { icon: LucideIcon; title: string; onAdd?: () => void }) {
-  return <div className="health-section-title"><div><span><Icon size={21} /></span><h2>{title}</h2></div>{onAdd && <button className="button-secondary care-add-button" onClick={onAdd}><Plus size={19} /> Aggiungi</button>}</div>
+function SectionTitle({ icon: Icon, title, onAdd, tutorialId }: { icon: LucideIcon; title: string; onAdd?: () => void; tutorialId?: string }) {
+  return <div className="health-section-title"><div><span><Icon size={21} /></span><h2>{title}</h2></div>{onAdd && <button id={tutorialId} className="button-secondary care-add-button" onClick={onAdd}><Plus size={19} /> Aggiungi</button>}</div>
 }
 
 function RecordDocuments({ documents }: { documents: PetDocument[] }) {
@@ -57,7 +57,7 @@ export function CareDetailDialog({ section, onAdd, onClose, onEditProfile }: { s
   const antiparasitics = activePet.health.preventions.filter((record) => !/svermin/i.test(record.kind))
 
   return <Modal title={sectionTitles[section]} onClose={onClose}><div className="care-detail-scroll">
-    {section === 'vaccination' && <section className="health-section"><SectionTitle icon={Syringe} title="Storico e richiami" onAdd={() => onAdd('vaccination')} />{activePet.health.vaccinations.length ? <div className="record-list">{activePet.health.vaccinations.map((record) => <article className="record-row" key={record.id}><div className="record-marker"><Check size={18} /></div><div><strong>{record.name}</strong><p>Somministrato {formatDate(record.administeredDate)}</p>{record.lotNumber && <small>Lotto · {record.lotNumber}</small>}{record.expiryDate && <small>Scadenza prodotto · {formatDate(record.expiryDate)}</small>}{record.notes && <small>{record.notes}</small>}<RecordDocuments documents={record.documents} /></div><span>Prossimo<br/><strong>{record.nextDate ? formatDate(record.nextDate) : 'da definire'}</strong></span></article>)}</div> : <div className="empty-inline">Nessuna vaccinazione inserita.</div>}</section>}
+    {section === 'vaccination' && <section className="health-section"><SectionTitle icon={Syringe} title="Storico e richiami" onAdd={() => onAdd('vaccination')} tutorialId="tutorial-care-add" />{activePet.health.vaccinations.length ? <div className="record-list">{activePet.health.vaccinations.map((record) => <article className="record-row" key={record.id}><div className="record-marker"><Check size={18} /></div><div><strong>{record.name}</strong><p>Somministrato {formatDate(record.administeredDate)}</p>{record.lotNumber && <small>Lotto · {record.lotNumber}</small>}{record.expiryDate && <small>Scadenza prodotto · {formatDate(record.expiryDate)}</small>}{record.notes && <small>{record.notes}</small>}<RecordDocuments documents={record.documents} /></div><span>Prossimo<br/><strong>{record.nextDate ? formatDate(record.nextDate) : 'da definire'}</strong></span></article>)}</div> : <div className="empty-inline">Nessuna vaccinazione inserita.</div>}</section>}
 
     {section === 'prevention' && <PreventionSection title="Pulci e zecche" explanation="Prodotto, ultima somministrazione e cadenza restano quelli confermati da te." records={antiparasitics} onAdd={() => onAdd('prevention')} />}
     {section === 'deworming' && <PreventionSection title="Sverminazione" explanation="Prodotto e cadenza restano quelli confermati da te." records={deworming} onAdd={() => onAdd('deworming')} />}

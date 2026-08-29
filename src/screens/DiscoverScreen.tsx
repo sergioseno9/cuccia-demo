@@ -29,8 +29,8 @@ export function DiscoverScreen() {
   }
 
   return <div className="screen discover-screen">
-    <header id="tutorial-discover" className="minimal-screen-header discover-header"><p className="eyebrow">Idee per {profile.name}</p><h1>Scopri</h1></header>
-    <div className="discover-feature-list">
+    <header className="minimal-screen-header discover-header"><p className="eyebrow">Idee per {profile.name}</p><h1>Scopri</h1></header>
+    <div id="tutorial-discover" className="discover-feature-list">
       <button className="discover-feature-card quiz-feature" onClick={() => setQuizOpen(true)}><span><Sparkles size={27} /></span><div><strong>Che tipo è {profile.name}?</strong><p>{activePet.quizResult ? 'Rivedi il risultato' : 'Un mini-quiz per ridere insieme'}</p></div><ChevronRight size={22} /></button>
       <button className="discover-feature-card tip-feature" onClick={openRelated}><span><Lightbulb size={27} /></span><div><strong>Consiglio del momento</strong><p>{tip.title}</p></div><ChevronRight size={22} /></button>
       <button className="discover-feature-card games-feature" onClick={() => setLibraryOpen(true)}><span><Target size={27} /></span><div><strong>Giochi &amp; trucchi</strong><p>Guide, esercizi e percorsi gentili</p></div><ChevronRight size={22} /></button>
