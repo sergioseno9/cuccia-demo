@@ -11,7 +11,6 @@ import { AppStateProvider } from './state/AppState'
 import './styles/base.css'
 import './styles/components.css'
 import './styles/screens.css'
-import './styles/onboarding.css'
 import './styles/guides.css'
 import './styles/personalization.css'
 import './styles/state-cards.css'
@@ -20,6 +19,8 @@ import './styles/responsive.css'
 import './styles/quality-evolution.css'
 import './styles/quiz.css'
 import './styles/minimal-restyle.css'
+import './styles/onboarding.css'
+import './styles/onboarding-choices.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
