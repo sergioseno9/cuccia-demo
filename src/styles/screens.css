@@ -143,20 +143,6 @@
 .family-grid article { padding: 13px; border-radius: 14px; background: var(--sand); }
 .family-grid strong { display: block; margin-top: 9px; font-size: 9px; }
 .family-grid p { margin: 2px 0 0; color: var(--taupe); font-size: 8px; }
-.pet-card-section { padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: #fffaf5; box-shadow: var(--soft-shadow); }
-.pet-card-heading, .pet-card-heading > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.card-logo { width: 40px; height: 40px; overflow: hidden; border-radius: 11px; }
-.pet-card-heading h2 { margin: 0; font-size: 24px; }
-.pet-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-.pet-card-grid span, .pet-card-grid strong { display: block; }
-.pet-card-grid span { margin-bottom: 4px; color: var(--taupe); font-size: 7px; text-transform: uppercase; }
-.pet-card-grid strong { font-size: 9px; line-height: 1.4; }
-.pet-card-grid small { display: block; margin-top: 4px; color: var(--taupe); font-size: 8px; line-height: 1.4; }
-.card-wide { grid-column: 1 / -1; }
-.pet-card-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 15px; }
-.pet-card-note { display: flex; align-items: flex-start; gap: 6px; margin: 15px 0 0; color: var(--taupe); font-size: 7px; line-height: 1.5; }
-.pet-card-dialog { max-height: calc(88vh - 100px); overflow-y: auto; }
-.pet-card-dialog .pet-card-section { margin: 0; }
 .feeding-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .feeding-summary div { padding: 13px; border-radius: 13px; background: var(--sand); }
 .feeding-summary span, .feeding-summary strong { display: block; }

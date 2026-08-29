@@ -23,7 +23,7 @@ export function GamesScreen() {
       <p className="discover-page-lead">Sessioni brevi, premi graditi e libertà di fermarsi.</p>
       <section className="training-paths games-paths"><div className="section-title-row"><div><p className="eyebrow">Passo dopo passo</p><h2>Percorsi guidati</h2></div><ListChecks size={23} /></div>{trainingPaths.map((path) => {
         const completed = path.trickIds.filter((id) => activePet.trickProgress[id]?.status === 'imparato').length
-        return <article key={path.id}><div><strong>{path.title}</strong><p>{path.description}</p></div><span>{completed} di {path.trickIds.length}</span><div className="path-progress"><span style={{ width: `${(completed / path.trickIds.length) * 100}%` }} /></div></article>
+        return <Link className="games-path-card" key={path.id} to={`/scopri/percorso/${path.id}`}><div><strong>{path.title}</strong><p>{path.description}</p></div><span>{completed} di {path.trickIds.length}</span><ChevronRight size={20} /><div className="path-progress"><span style={{ width: `${(completed / path.trickIds.length) * 100}%` }} /></div></Link>
       })}</section>
 
       <section className="games-tricks"><div className="section-title-row"><div><p className="eyebrow">Una cosa alla volta</p><h2>Trucchi ed esercizi</h2></div><Gamepad2 size={24} /></div>

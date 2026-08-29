@@ -100,9 +100,7 @@ h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
 .discover-feature-card > span { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 17px; }
 .discover-feature-card strong { display: block; margin-bottom: 7px; font-size: 20px; line-height: 1.2; }
 .discover-feature-card p { margin: 0; color: var(--taupe); font-size: 15px; line-height: 1.45; }
-.quiz-feature { background: #f8dfd1; }
 .quiz-feature > span { background: var(--clay); color: #fff; }
-.tip-feature > span { background: #fff1ce; color: #bd8215; }
 .games-feature > span { background: #e7eee3; color: #66805d; }
 .discover-library-scroll > section + section { margin-top: 42px; }
 

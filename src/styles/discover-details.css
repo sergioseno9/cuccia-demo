@@ -88,7 +88,14 @@
   min-height: 46px;
   border-color: var(--line);
   background: var(--canvas);
+  color: var(--ink);
   font-size: 16px;
+}
+
+.trick-page-content .trick-status button.is-active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--cream);
 }
 
 @media (max-width: 390px) {

@@ -12,6 +12,7 @@ import { GamesScreen } from './screens/GamesScreen'
 import { GuideReaderScreen } from './screens/GuideReaderScreen'
 import { GuidesScreen } from './screens/GuidesScreen'
 import { HomeScreen } from './screens/HomeScreen'
+import { PathScreen } from './screens/PathScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
 import { QuizScreen } from './screens/QuizScreen'
 import { TrickScreen } from './screens/TrickScreen'
@@ -42,6 +43,7 @@ function RoutedApp() {
           <Route path="/scopri/quiz" element={<QuizScreen />} />
           <Route path="/scopri/guide" element={<GuidesScreen />} />
           <Route path="/scopri/giochi" element={<GamesScreen />} />
+          <Route path="/scopri/percorso/:pathId" element={<PathScreen />} />
           <Route path="/scopri/trucco/:id" element={<TrickScreen />} />
           <Route path="/scopri/guida/:guideId" element={<GuideReaderScreen />} />
           <Route path="/profilo" element={<ProfileScreen />} />

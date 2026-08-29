@@ -23,6 +23,8 @@ import './styles/onboarding.css'
 import './styles/onboarding-choices.css'
 import './styles/discover-pages.css'
 import './styles/discover-details.css'
+import './styles/path-screen.css'
+import './styles/pet-card.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
