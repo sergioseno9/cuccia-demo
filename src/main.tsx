@@ -21,6 +21,8 @@ import './styles/quiz.css'
 import './styles/minimal-restyle.css'
 import './styles/onboarding.css'
 import './styles/onboarding-choices.css'
+import './styles/discover-pages.css'
+import './styles/discover-details.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

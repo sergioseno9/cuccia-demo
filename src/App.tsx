@@ -8,9 +8,13 @@ import { Onboarding } from './onboarding/Onboarding'
 import { CareScreen } from './screens/CareScreen'
 import { DiaryScreen } from './screens/DiaryScreen'
 import { DiscoverScreen } from './screens/DiscoverScreen'
+import { GamesScreen } from './screens/GamesScreen'
 import { GuideReaderScreen } from './screens/GuideReaderScreen'
+import { GuidesScreen } from './screens/GuidesScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { QuizScreen } from './screens/QuizScreen'
+import { TrickScreen } from './screens/TrickScreen'
 import { useAppState } from './state/AppState'
 
 function ScrollToTop() {
@@ -35,6 +39,10 @@ function RoutedApp() {
           <Route path="/diario" element={<DiaryScreen />} />
           <Route path="/cura" element={<CareScreen />} />
           <Route path="/scopri" element={<DiscoverScreen />} />
+          <Route path="/scopri/quiz" element={<QuizScreen />} />
+          <Route path="/scopri/guide" element={<GuidesScreen />} />
+          <Route path="/scopri/giochi" element={<GamesScreen />} />
+          <Route path="/scopri/trucco/:id" element={<TrickScreen />} />
           <Route path="/scopri/guida/:guideId" element={<GuideReaderScreen />} />
           <Route path="/profilo" element={<ProfileScreen />} />
           <Route path="/salute" element={<Navigate to="/cura" replace />} />

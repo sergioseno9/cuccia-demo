@@ -1,0 +1,255 @@
+.discover-subpage {
+  min-height: calc(100vh - 88px);
+}
+
+.discover-page-header {
+  margin-bottom: 32px;
+}
+
+.discover-page-back {
+  width: 48px;
+  height: 48px;
+  display: inline-grid;
+  place-items: center;
+  margin: 0 0 28px -10px;
+  border-radius: 50%;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.discover-page-back:focus-visible,
+.guide-page-list a:focus-visible,
+.trick-card:focus-visible {
+  outline: 3px solid rgba(217, 105, 74, .4);
+  outline-offset: 3px;
+}
+
+.discover-page-header .eyebrow {
+  margin-bottom: 10px;
+}
+
+.discover-page-header h1 {
+  max-width: 430px;
+  margin: 0;
+  font: 600 clamp(42px, 12vw, 58px)/.98 'Fraunces', serif;
+  letter-spacing: -.04em;
+}
+
+.discover-page-lead {
+  max-width: 430px;
+  margin: -10px 0 34px;
+  color: var(--taupe);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.discover-feature-card p {
+  font-size: 16px;
+}
+
+.guides-feature > span {
+  background: rgba(94, 124, 139, .12);
+  color: var(--blue);
+}
+
+.games-feature > span {
+  background: rgba(143, 160, 131, .16);
+  color: #66805d;
+}
+
+.discover-subpage > section {
+  margin-top: 36px;
+}
+
+.guide-calm-panel,
+.guide-page-list,
+.discover-empty-page {
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.guide-calm-panel {
+  margin-top: 0 !important;
+  padding: 22px;
+}
+
+.guide-calm-panel > div:first-child {
+  grid-template-columns: 28px 1fr;
+}
+
+.guide-calm-panel p {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.guide-calm-panel button {
+  min-height: 48px;
+  border: 0;
+  background: rgba(242, 178, 76, .11);
+  font-size: 16px;
+}
+
+.guide-category-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: #66805d;
+}
+
+.guide-category-heading h2 {
+  margin: 0;
+  color: #aea393;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.guide-page-list {
+  overflow: hidden;
+}
+
+.guide-page-list a {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.guide-page-list a:last-child {
+  border-bottom: 0;
+}
+
+.guide-page-list strong,
+.guide-page-list span {
+  display: block;
+}
+
+.guide-page-list strong {
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.guide-page-list span {
+  margin-top: 6px;
+  color: var(--taupe);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.discover-empty-page {
+  padding: 30px 24px;
+  color: #66805d;
+}
+
+.discover-empty-page h2 {
+  margin: 14px 0 8px;
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.discover-empty-page p {
+  margin: 0;
+  color: var(--taupe);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.games-page .section-title-row h2,
+.games-page .trick-level > h3,
+.trick-page-content h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.games-paths {
+  margin-top: 0 !important;
+}
+
+.games-paths article,
+.games-page .trick-card,
+.games-page .badge-grid article,
+.games-page .progress-summary {
+  border: 0;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.games-paths article {
+  padding: 20px 18px 24px;
+  border-radius: 18px;
+}
+
+.games-paths article p { font-size: 16px; }
+.games-paths article > span { font-size: 14px; }
+
+.games-page .trick-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.games-page .trick-card {
+  min-height: 150px;
+  padding: 20px;
+  border-radius: 20px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.games-page .trick-card strong {
+  font: 700 20px/1.2 'Plus Jakarta Sans', sans-serif;
+}
+
+.games-page .trick-card p { font-size: 16px; }
+.games-page .trick-card small { font-size: 14px; }
+
+.games-progress .progress-summary {
+  color: var(--ink);
+}
+
+.games-progress .progress-summary p {
+  color: var(--taupe);
+}
+
+.games-progress .progress-summary .text-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--clay);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.games-page .badge-grid article {
+  min-height: 112px;
+}
+
+.games-page .badge-grid article.is-earned {
+  background: rgba(143, 160, 131, .12);
+}
+
+@media (max-width: 390px) {
+  .discover-feature-card {
+    grid-template-columns: 58px minmax(0, 1fr) 20px;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .discover-feature-card > span {
+    width: 54px;
+    height: 54px;
+  }
+
+  .guide-calm-panel > div:last-child,
+  .badge-grid {
+    grid-template-columns: 1fr;
+  }
+}

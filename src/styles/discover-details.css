@@ -1,0 +1,104 @@
+.quiz-page-content {
+  padding-bottom: 12px;
+}
+
+.quiz-question h2 {
+  max-width: 430px;
+  margin: 30px 0 22px;
+  font: 700 28px/1.25 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -.02em;
+}
+
+.quiz-page .quiz-options button {
+  min-height: 64px;
+  border: 0;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+  font-size: 16px;
+}
+
+.quiz-page .quiz-gentle-copy,
+.quiz-page .quiz-disclaimer,
+.quiz-page .quiz-share-error {
+  font-size: 16px;
+}
+
+.quiz-page .quiz-result > h2 {
+  margin: 0;
+  font: 600 clamp(38px, 11vw, 52px)/.98 'Fraunces', serif;
+  letter-spacing: -.045em;
+}
+
+.quiz-page .quiz-result-details article {
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.quiz-page .quiz-result-details h3 {
+  font: 700 19px 'Plus Jakarta Sans', sans-serif;
+}
+
+.quiz-page .quiz-result-actions button {
+  min-height: 52px;
+  font-size: 16px;
+}
+
+.trick-page-content > section {
+  margin-top: 34px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.trick-page-content h2 {
+  margin: 0 0 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px;
+}
+
+.trick-page-content p,
+.trick-page-content li {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.trick-page-content li + li {
+  margin-top: 10px;
+}
+
+.trick-page .trick-meta span {
+  background: rgba(143, 160, 131, .12);
+}
+
+.trick-page .trick-goal {
+  margin: 18px 0 0;
+  font-size: 18px;
+}
+
+.trick-page-content .trick-fallback,
+.trick-page-content .trick-status {
+  padding: 24px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.trick-page-content .trick-status button {
+  min-height: 46px;
+  border-color: var(--line);
+  background: var(--canvas);
+  font-size: 16px;
+}
+
+@media (max-width: 390px) {
+  .quiz-result-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-progress span {
+    transition: none;
+  }
+}

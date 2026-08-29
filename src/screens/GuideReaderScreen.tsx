@@ -12,10 +12,10 @@ export function GuideReaderScreen() {
   const guide = getGuide(guideId)
   const { checkedItems, toggleItem } = useGuideChecklist(guideId)
 
-  if (!profile || guide?.species !== profile.species || (guide.fase !== 'tutte' && guide.fase !== profile.lifePhase)) return <Navigate to="/scopri" replace />
+  if (!profile || guide?.species !== profile.species) return <Navigate to="/scopri" replace />
   const related = (guide.related ?? []).flatMap((id) => {
     const item = getGuide(id)
-    return item && item.species === profile.species && (item.fase === 'tutte' || item.fase === profile.lifePhase)
+    return item && item.species === profile.species
       ? [item]
       : []
   })
