@@ -12,4 +12,14 @@
 .auth-form input:focus-visible { outline: 3px solid color-mix(in srgb, var(--clay) 35%, transparent); outline-offset: 2px; }
 .auth-form .button-primary, .cloud-account-panel .button-secondary { min-height: 48px; justify-content: center; }
 .cloud-account-message { padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--sage) 12%, white); color: var(--ink) !important; font-size: 14px !important; }
+.cloud-migration-panel { display: grid; gap: 14px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--ink) 8%, white); }
+.cloud-migration-title { display: flex; align-items: flex-start; gap: 12px; }
+.cloud-migration-title svg { color: var(--sage); flex: 0 0 auto; }
+.cloud-migration-title strong { font-size: 17px; }
+.cloud-migration-title p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.cloud-link-state { display: flex; align-items: center; gap: 8px; color: var(--sage) !important; font-weight: 700; }
+.migration-counts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0; }
+.migration-counts div { display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--sage) 7%, white); }
+.migration-counts dt { color: var(--muted); font-size: 13px; }
+.migration-counts dd { margin: 0; color: var(--ink); font-weight: 700; }
 @media (max-width: 420px) { .cloud-account-panel { padding: 20px; } .auth-mode-switch { grid-template-columns: 1fr; } }

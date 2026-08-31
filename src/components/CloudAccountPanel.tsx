@@ -2,6 +2,7 @@ import { Cloud, KeyRound, LogIn, LogOut, Mail, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { CloudMigrationPanel } from './CloudMigrationPanel'
 
 type AuthMode = 'login' | 'signup' | 'reset'
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'Operazione non riuscita. Riprova tra poco.'
@@ -34,6 +35,7 @@ export function CloudAccountPanel() {
 
   if (auth.user) return <PanelHeading title="Account cloud" copy={auth.user.email ?? ''}>
     <p>I dati locali non vengono caricati automaticamente.</p>
+    <CloudMigrationPanel />
     {message && <p className="cloud-account-message" role="status">{message}</p>}
     <button className="button-secondary" disabled={busy} onClick={() => void run(auth.signOut)}><LogOut size={18} /> Esci</button>
   </PanelHeading>

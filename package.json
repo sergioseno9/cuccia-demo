@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
     "audit": "npm audit",
-    "test": "npm run test:data",
+    "test": "node --experimental-strip-types --experimental-specifier-resolution=node --test tests/*.test.ts",
     "test:data": "node --experimental-strip-types --experimental-specifier-resolution=node --test tests/data-quality.test.ts"
   },
   "dependencies": {
