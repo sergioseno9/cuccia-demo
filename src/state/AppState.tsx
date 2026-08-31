@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { trainingPaths } from '../data/paths'
 import { levelLabels, trickLevels, tricks } from '../data/tricks'
@@ -6,7 +6,10 @@ import { parseBackupJson } from '../lib/backup'
 import { createDemoData } from '../lib/demo'
 import { createEmptyHealth } from '../lib/migrate'
 import { withRequiredModules } from '../lib/profile'
-import { clearStoredAppData, loadAppData, persistAppData, StorageQuotaError } from '../lib/storage'
+import { StorageQuotaError } from '../lib/storage'
+import { localAppDataRepository } from '../repositories/appDataRepository'
+import type { AppDataRepository } from '../repositories/appDataRepository'
+import { joinAppData, splitAppData } from './appStateModel'
 import type {
   AppData,
   CareEvent,
@@ -75,22 +78,30 @@ const updateSelectedPet = (current: AppData, update: (pet: PetData) => PetData):
   pets: current.pets.map((pet) => pet.id === current.selectedPetId ? update(pet) : pet),
 })
 
-export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(loadAppData)
+export function AppStateProvider({ children, repository = localAppDataRepository }: { children: ReactNode; repository?: AppDataRepository }) {
+  const [state, setState] = useState(() => splitAppData(repository.load()))
   const [toast, setToast] = useState('')
+  const data = useMemo(() => joinAppData(state), [state])
+  const setData = useCallback((update: AppData | ((current: AppData) => AppData)) => {
+    setState((current) => {
+      const currentData = joinAppData(current)
+      const nextData = typeof update === 'function' ? update(currentData) : update
+      return splitAppData(nextData)
+    })
+  }, [])
   const activePet = data.pets.find((pet) => pet.id === data.selectedPetId) ?? data.pets[0] ?? null
   const profile = activePet?.profile ?? null
   const caregivers = data.household.caregivers
 
   useEffect(() => {
     try {
-      persistAppData(data)
+      repository.save(data)
     } catch (error) {
       setToast(error instanceof StorageQuotaError
         ? 'Spazio quasi esaurito, esporta un backup. L’ultima modifica resta aperta.'
         : 'Salvataggio locale non riuscito. Esporta un backup prima di chiudere.')
     }
-  }, [data])
+  }, [data, repository])
 
   useEffect(() => {
     if (!toast) return
@@ -177,7 +188,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return { ...current, pets, selectedPetId: pets[0]?.id ?? '' }
     }),
     resetAll: () => {
-      clearStoredAppData()
+      repository.clear()
       Object.keys(localStorage)
         .filter((key) => key.startsWith('cuccia:guide-checklist:'))
         .forEach((key) => localStorage.removeItem(key))
