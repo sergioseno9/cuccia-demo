@@ -23,6 +23,24 @@ import type {
   TrackedModule,
 } from '../types'
 
+const outingTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/
+
+const migrateOutingSchedules = (value: unknown) => {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  return value.flatMap((item, index) => {
+    if (!isRecord(item)) return []
+    const time = text(item.time)
+    if (!outingTimePattern.test(time) || seen.has(time)) return []
+    seen.add(time)
+    return [{
+      id: text(item.id) || `outing-${index + 1}`,
+      time,
+      reminderEnabled: item.reminderEnabled === true,
+    }]
+  }).sort((first, second) => first.time.localeCompare(second.time))
+}
+
 export const createEmptyHealth = (): HealthData => ({
   vaccinations: [], preventions: [], medications: [], visits: [], weights: [], grooming: [],
 })
@@ -66,6 +84,7 @@ const migrateProfile = (value: unknown, fallbackSpecies: PetSpecies, fallbackId:
     conditionNotes: text(value.conditionNotes) || (typeof value.conditions === 'string' ? value.conditions : ''),
     medicalNotes: text(value.medicalNotes),
     ...(outingIntervalHours && outingIntervalHours > 0 ? { outingIntervalHours } : {}),
+    outingSchedules: migrateOutingSchedules(value.outingSchedules),
     ...(species === 'gatto' ? { indoorOutdoor } : {}),
     name: text(value.name),
     photo: text(value.photo),

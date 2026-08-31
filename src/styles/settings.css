@@ -1,0 +1,203 @@
+.modal-sheet:has(.settings-panel) {
+  background: var(--canvas);
+}
+
+.modal-sheet:has(.settings-panel) .modal-heading h2 {
+  font: 600 28px/1.05 'Fraunces', serif;
+  letter-spacing: -.025em;
+}
+
+.settings-panel {
+  display: grid;
+  gap: 20px;
+  padding: 4px 2px 24px;
+}
+
+.settings-panel > .cloud-account-panel,
+.settings-panel > .profile-section,
+.settings-card {
+  margin: 0;
+  padding: 22px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.profile-detail-scroll .settings-panel > .profile-section {
+  margin: 0;
+  padding: 22px;
+}
+
+.settings-card-heading {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.settings-card-heading .settings-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: color-mix(in srgb, currentColor 9%, white);
+}
+
+.settings-card-heading h2,
+.settings-panel .section-title-row h2 {
+  margin: 0;
+  font: 700 20px/1.25 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -.02em;
+}
+
+.settings-card-heading p,
+.settings-panel .section-explainer {
+  margin: 5px 0 0;
+  color: var(--taupe);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.settings-panel .section-title-row {
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.settings-panel .section-title-row .eyebrow {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.settings-panel .section-title-row > svg {
+  color: var(--blue);
+}
+
+.settings-panel .button-primary,
+.settings-panel .button-secondary,
+.settings-panel .danger-button,
+.settings-panel .text-button {
+  min-height: 46px;
+  font-size: 16px;
+}
+
+.tracking-summary {
+  border: 0;
+  background: #fff;
+}
+
+.tracking-chip-list {
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.tracking-chip-list span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sage) 11%, white);
+  color: #5c7054;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings-summary-copy {
+  margin: -4px 0 18px;
+  color: var(--taupe);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.settings-panel .documents-section .section-explainer,
+.settings-panel .backup-section .section-explainer {
+  margin: 0 0 18px;
+}
+
+.settings-panel .document-add select {
+  min-height: 48px;
+  border: 0;
+  background: var(--canvas);
+  font-size: 16px;
+}
+
+.settings-panel .document-list article {
+  min-height: 68px;
+  padding: 10px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--canvas);
+}
+
+.settings-panel .document-list strong,
+.settings-panel .document-list p {
+  font-size: 14px;
+}
+
+.settings-panel .backup-actions { gap: 10px; }
+.settings-panel .backup-actions button { justify-content: center; }
+
+.settings-panel .tutorial-replay-section {
+  display: block;
+  background: #fff;
+}
+
+.settings-panel .tutorial-replay-section > div {
+  display: grid;
+}
+
+.settings-panel .tutorial-replay-section > .button-secondary {
+  width: 100%;
+  justify-content: center;
+}
+
+.settings-pet-list {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.settings-pet-list > div {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-pet-list strong { font-size: 16px; }
+.settings-pet-list span { color: var(--taupe); font-size: 14px; text-transform: capitalize; }
+
+.settings-panel .reset-section {
+  display: block;
+  border: 0;
+}
+
+.settings-panel .reset-section > div {
+  display: grid;
+}
+
+.settings-panel .reset-actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 4px;
+}
+
+.settings-panel .reset-section > .text-button {
+  color: #a74530;
+}
+
+.settings-panel .profile-footnote {
+  margin: 2px 12px 0;
+  color: var(--taupe);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .settings-panel { gap: 16px; }
+  .settings-panel > .cloud-account-panel,
+  .settings-panel > .profile-section,
+  .settings-card,
+  .profile-detail-scroll .settings-panel > .profile-section { padding: 20px 18px; }
+}

@@ -67,6 +67,12 @@ export interface CareEvent {
   deletedAt?: string
 }
 
+export interface OutingSchedule {
+  id: string
+  time: string
+  reminderEnabled: boolean
+}
+
 export interface PetProfile {
   id: string
   createdAt: string
@@ -77,6 +83,7 @@ export interface PetProfile {
   conditionNotes: string
   medicalNotes: string
   outingIntervalHours?: number
+  outingSchedules: OutingSchedule[]
   indoorOutdoor?: 'indoor' | 'outdoor' | 'both'
   name: string
   photo: string

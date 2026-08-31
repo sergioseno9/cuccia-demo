@@ -6,6 +6,7 @@ import { loadCloudAppData, hasCloudPets } from './cloud/cloudBootstrapRepository
 import { buildMigrationPlan } from './cloud/migrationPlan'
 import { importMigrationPlan } from './cloud/migrationRepository'
 import { BottomNav } from './components/BottomNav'
+import { InAppOutingReminder } from './components/InAppOutingReminder'
 import { PetSwitcher } from './components/PetSwitcher'
 import { TutorialCoach } from './components/TutorialCoach'
 import { CloudEntryErrorScreen, LocalDataImportScreen } from './entry/CloudEntryScreens'
@@ -56,6 +57,7 @@ function RoutedApp() {
       <ScrollToTop />
       <div className="app-frame">
         <PetSwitcher />
+        <InAppOutingReminder />
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/diario" element={<DiaryScreen />} />

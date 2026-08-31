@@ -14,6 +14,10 @@ export const createDemoProfile = (): PetProfile => ({
   conditionNotes: '',
   medicalNotes: 'Nessuna condizione aggiunta.',
   outingIntervalHours: 3,
+  outingSchedules: [
+    { id: 'outing-morning', time: '08:45', reminderEnabled: true },
+    { id: 'outing-evening', time: '21:00', reminderEnabled: false },
+  ],
   name: 'Milo',
   photo: '',
   birthDate: isoDateFromNow(-900),

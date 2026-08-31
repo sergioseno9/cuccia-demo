@@ -82,6 +82,7 @@ export const createEmptyProfile = (species: PetSpecies, id: string): PetProfile 
   conditions: [],
   conditionNotes: '',
   medicalNotes: '',
+  outingSchedules: [],
   ...(species === 'gatto' ? { indoorOutdoor: 'indoor' as const } : {}),
   name: '',
   photo: '',
