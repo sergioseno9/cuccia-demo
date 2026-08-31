@@ -1,8 +1,8 @@
-# cuccia — Fase 0
+# cuccia — Fase 1
 
 Web app mobile-first per tenere in ordine scadenze, Pet Card, libretto di Cura e quotidianità
-di cani e gatti. È un prototipo locale Vite + React + TypeScript: nessun backend, account,
-paywall o sincronizzazione tra dispositivi.
+di cani e gatti. La modalità locale Vite + React + TypeScript resta quella predefinita; Supabase
+Auth e l’importazione cloud sono facoltativi e si attivano soltanto dopo una conferma esplicita.
 
 ## Cosa include
 
@@ -12,8 +12,7 @@ paywall o sincronizzazione tra dispositivi.
   modificabile con audit e soft-delete.
 - **Cura:** vaccini con lotto/scadenza, antiparassitari con pausa stagionale, sverminazione,
   terapie, visite, peso, microchip, condizioni/malattie annotate, igiene e allegati locali.
-- **Scopri:** consigli per specie e fase; per il cane addestramento gentile, percorsi, badge,
-  clicker, fischietto e guide. Per il gatto i contenuti dedicati sono indicati “in arrivo”.
+- **Scopri:** quiz, guide statiche e giochi/trucchi con progressi separati per pet.
 - **Profilo:** dati pet, alimentazione, contatti, famiglia, moduli, documenti e Pet Card.
 - **Backup:** copia automatica a ogni modifica, export JSON re-importabile e PDF leggibile.
 - **Onboarding:** nove passaggi specie-first e tutorial iniziale riapribile dal Profilo.
@@ -42,10 +41,13 @@ dimostrativi**. I dati restano nel browser corrente.
 npm test
 npm run build
 npm run preview
+npm run security
 npm run audit
 ```
 
-`npm test` verifica tre reti di sicurezza:
+`npm test` verifica migrazioni locali, backup round-trip, dry-run cloud, fingerprint e chiavi
+idempotenti. I test RLS richiedono lo stack Supabase locale; istruzioni complete in
+[`docs/PHASE1.md`](docs/PHASE1.md).
 
 1. migrazione di uno stato precedente popolato senza perdita di dati;
 2. creazione → export JSON → azzeramento → import con dati identici;
@@ -73,7 +75,8 @@ segnato come imparato può essere condiviso come card PNG.
 1. Pubblica il repository su GitHub.
 2. In Vercel scegli **Add New → Project** e importa il repository.
 3. Lascia **Framework Preset: Vite** e **Root Directory: `./`**.
-4. Non servono variabili d’ambiente.
+4. Per la sola modalità locale non servono variabili. Per account/import cloud aggiungi
+   `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` nelle variabili del progetto.
 5. Seleziona **Deploy** e condividi l’URL generato.
 
 Ogni push sul branch principale crea un nuovo deploy. I dati di ciascun utente restano nel
@@ -88,31 +91,29 @@ npm run deploy
 Poi, in **Settings → Pages**, scegli **Deploy from a branch**, branch `gh-pages` e cartella
 `/ (root)`. `vite.config.ts` usa `base: './'`, quindi gli asset funzionano in sottocartella.
 
-## Limiti della Fase 0
+## Limiti della Fase 1
 
 - reminder soltanto in-app da date inserite manualmente;
-- nessun push, account o sincronizzazione affidabile;
+- nessun push, realtime o sincronizzazione multiutente affidabile;
 - nessun OCR o salvataggio automatico di dati sanitari;
 - foto, file e backup occupano lo spazio locale del browser;
 - guide statiche da revisionare professionalmente prima del lancio reale;
 - evitare dati reali o sensibili in una demo pubblica.
 
-Il motore scadenze è separato dalla UI per collegarsi in Fase 1 a reminder in background.
-Push, account e sincronizzazione arrivano soltanto con il backend futuro.
+Push, realtime, famiglia condivisa e sincronizzazione continua arrivano nelle fasi successive.
 
 ## Sicurezza
 
 - Non inserire chiavi, token, password o credenziali nel codice: il repository è pubblico.
-- Le configurazioni locali vanno in `.env`, che Git ignora. Parti dall’esempio:
+- Le configurazioni locali vanno in `.env.local`, che Git ignora. Parti dall’esempio:
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-- Nel browser le variabili Vite `VITE_*` sono pubbliche e finiscono nella build: usarle solo
-  per URL o identificatori pubblici, mai per veri segreti. Le chiavi private dovranno vivere
-  in un backend futuro, non in questa web app.
-- Il prototipo non espone backend o credenziali. `localStorage` è adatto solo a dati demo o
+- Nel browser le variabili Vite `VITE_*` sono pubbliche e finiscono nella build: usare soltanto
+  URL Supabase e chiave publishable/anon, mai secret o service-role.
+- `localStorage` è adatto solo a dati demo o
   non sensibili: evita informazioni sanitarie o personali reali su dispositivi condivisi.
 - Prima di pubblicare esegui `npm test`, `npm run audit`, `npm run build` e controlla
   `git status`.
