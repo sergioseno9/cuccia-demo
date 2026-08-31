@@ -9,6 +9,11 @@
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
     "audit": "npm audit",
+    "security": "node scripts/security-check.mjs",
+    "supabase:start": "supabase start",
+    "supabase:reset": "supabase db reset",
+    "supabase:stop": "supabase stop",
+    "test:db": "supabase test db",
     "test": "node --experimental-strip-types --experimental-specifier-resolution=node --test tests/*.test.ts",
     "test:data": "node --experimental-strip-types --experimental-specifier-resolution=node --test tests/data-quality.test.ts"
   },
