@@ -1,0 +1,1 @@
+-- Phase 1 intentionally ships without demo rows in the cloud database.
