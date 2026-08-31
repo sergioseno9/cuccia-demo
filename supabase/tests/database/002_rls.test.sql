@@ -96,8 +96,8 @@ select throws_ok(
   $$insert into public.medication_logs(pet_id, household_id, medication_id, actor_user_id, author_snapshot, client_mutation_id, administered_at, status) values ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', auth.uid(), 'Caregiver', 'dose-unscheduled', now(), 'administered')$$,
   '42501', null, 'Caregiver cannot create an unscheduled dose'
 );
-select not_ok(
-  private.can_access_pet_document('households/10000000-0000-0000-0000-000000000001/pets/20000000-0000-0000-0000-000000000001/doc.pdf', 'health'),
+select ok(
+  not private.can_access_pet_document('households/10000000-0000-0000-0000-000000000001/pets/20000000-0000-0000-0000-000000000001/doc.pdf', 'health'),
   'Caregiver cannot access health documents'
 );
 
@@ -116,8 +116,8 @@ select lives_ok(
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000003', true);
 select is((select count(*) from public.pets), 0::bigint, 'Revoked caregiver immediately loses query access');
-select not_ok(
-  private.can_access_pet_document('households/10000000-0000-0000-0000-000000000001/pets/20000000-0000-0000-0000-000000000001/doc.pdf', 'health'),
+select ok(
+  not private.can_access_pet_document('households/10000000-0000-0000-0000-000000000001/pets/20000000-0000-0000-0000-000000000001/doc.pdf', 'health'),
   'Revoked caregiver immediately loses Storage access'
 );
 

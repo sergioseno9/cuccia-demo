@@ -48,7 +48,7 @@ select is(
 );
 
 select has_index(
-  'public', 'activities', 'activities_pet_mutation_uidx',
+  'public', 'activities', 'activities_pet_mutation_key',
   'Activities have a per-pet client mutation deduplication index'
 );
 
