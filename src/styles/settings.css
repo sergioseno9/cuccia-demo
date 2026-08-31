@@ -179,12 +179,42 @@
 
 .settings-panel .reset-actions {
   grid-template-columns: 1fr 1fr;
-  margin-top: 4px;
+  gap: 10px;
 }
 
 .settings-panel .reset-section > .text-button {
   color: #a74530;
 }
+
+.reset-backup-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.reset-start-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.reset-confirmation {
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--clay) 8%, white);
+}
+
+.reset-confirmation p,
+.reset-message {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.reset-confirmation strong { display: block; margin-bottom: 4px; }
+.reset-message { margin-top: 14px; color: #8f412f; }
 
 .settings-panel .profile-footnote {
   margin: 2px 12px 0;

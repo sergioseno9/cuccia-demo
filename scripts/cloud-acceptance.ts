@@ -189,8 +189,57 @@ try {
   assert.equal(reloadLogin.error, null)
   const reloadedPet = await client.from('pets').select('id').eq('id', createdPet.data.id).single()
   assert.equal(reloadedPet.error, null)
+
+  const resetAssets = await client.rpc('my_cloud_reset_storage_paths')
+  assert.equal(resetAssets.error, null)
+  const resetStoragePaths = Array.isArray(resetAssets.data)
+    ? resetAssets.data.filter((path): path is string => typeof path === 'string' && path.length > 0)
+    : []
+  assert.ok(resetStoragePaths.length >= 1)
+  assert.equal((await client.storage.from('pet-documents').remove(resetStoragePaths)).error, null)
+
+  const reset = await client.rpc('reset_my_cloud_data')
+  assert.equal(reset.error, null)
+  assert.ok(reset.data && typeof reset.data === 'object')
+  const resetCounts = reset.data as {
+    householdsDeleted: number
+    petsDeleted: number
+  }
+  assert.equal(resetCounts.householdsDeleted, 1)
+  assert.ok(resetCounts.petsDeleted >= 2)
+
+  const remoteHousehold = await admin.from('households')
+    .select('id', { count: 'exact', head: true }).eq('id', householdId)
+  assert.equal(remoteHousehold.count, 0)
+  const remotePets = await admin.from('pets')
+    .select('id', { count: 'exact', head: true }).eq('household_id', householdId)
+  assert.equal(remotePets.count, 0)
+  const remoteActivities = await admin.from('activities')
+    .select('id', { count: 'exact', head: true }).eq('household_id', householdId)
+  assert.equal(remoteActivities.count, 0)
+  const remoteHealth = await admin.from('health_events')
+    .select('id', { count: 'exact', head: true }).eq('household_id', householdId)
+  assert.equal(remoteHealth.count, 0)
+  const remoteDocuments = await admin.from('documents')
+    .select('id', { count: 'exact', head: true }).eq('household_id', householdId)
+  assert.equal(remoteDocuments.count, 0)
+  for (const path of resetStoragePaths) {
+    const parts = path.split('/')
+    const fileName = parts.pop() ?? ''
+    const listing = await admin.storage.from('pet-documents').list(parts.join('/'), { search: fileName })
+    assert.equal(listing.error, null)
+    assert.equal(listing.data?.some((entry) => entry.name === fileName), false)
+  }
+  const retainedProfile = await admin.from('profiles').select('id').eq('id', userId).single()
+  assert.equal(retainedProfile.error, null)
+
   assert.equal((await client.auth.signOut()).error, null)
-  console.log('PASS: profilo auth automatico, autoriparazione legacy, onboarding cloud, reload, doppio import e rollback pulito')
+  const emptyAccountLogin = await client.auth.signInWithPassword({ email, password: secondPassword })
+  assert.equal(emptyAccountLogin.error, null)
+  const emptyAccountPets = await client.from('pets').select('id', { count: 'exact', head: true })
+  assert.equal(emptyAccountPets.count, 0)
+  assert.equal((await client.auth.signOut()).error, null)
+  console.log('PASS: auth, onboarding, reload, import idempotente, rollback e reset cloud isolato')
 } finally {
   if (householdId) await admin.from('households').delete().eq('id', householdId)
   if (userId) await admin.auth.admin.deleteUser(userId)

@@ -1,15 +1,14 @@
-import { CircleHelp, PawPrint, RotateCcw, SlidersHorizontal, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { CircleHelp, PawPrint, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { conditionLabels, lifePhaseLabel, moduleLabels, trackedModuleIds } from '../lib/profile'
 import { useAppState } from '../state/AppState'
 import { BackupManager } from './BackupManager'
 import { CloudAccountPanel } from './CloudAccountPanel'
+import { DataResetCard } from './DataResetCard'
 import { DocumentManager } from './DocumentManager'
 import { OutingScheduleEditor } from './OutingScheduleEditor'
 
 export function ProfileSettingsPanel({ onEdit }: { onEdit: () => void }) {
-  const { data, profile, removePet, resetAll, restartTutorial } = useAppState()
-  const [confirmReset, setConfirmReset] = useState(false)
+  const { data, profile, removePet, restartTutorial } = useAppState()
   if (!profile) return null
   const visibleModules = trackedModuleIds(profile.species).filter((module) => profile.trackedModules.includes(module))
 
@@ -37,11 +36,8 @@ export function ProfileSettingsPanel({ onEdit }: { onEdit: () => void }) {
       <div className="settings-pet-list">{data.pets.map((pet) => <div key={pet.id}><strong>{pet.profile.name}</strong><span>{pet.profile.species}</span>{data.pets.length > 1 && <button className="text-button danger-text" onClick={() => window.confirm(`Rimuovere la scheda di ${pet.profile.name}?`) && removePet(pet.id)}><Trash2 size={18} /> Rimuovi</button>}</div>)}</div>
     </section>
 
-    <section className="settings-card reset-section">
-      <div className="settings-card-heading"><span className="settings-icon tone-clay"><RotateCcw size={22} /></span><div><h2>Azzera dati</h2><p>Rimuove le schede locali, Cura e Diario da questo browser.</p></div></div>
-      {confirmReset ? <div className="reset-actions"><button className="button-secondary" onClick={() => setConfirmReset(false)}>Annulla</button><button className="danger-button" onClick={resetAll}>Conferma azzeramento</button></div> : <button className="text-button danger-text" onClick={() => setConfirmReset(true)}>Azzera i dati locali</button>}
-    </section>
+    <DataResetCard />
 
-    <p className="profile-footnote">Documenti e promemoria locali restano in questo browser. Usa solo contenuti non sensibili.</p>
+    <p className="profile-footnote">Prima di modifiche importanti, conserva sempre un backup JSON.</p>
   </div>
 }

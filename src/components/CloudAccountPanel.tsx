@@ -33,7 +33,7 @@ export function CloudAccountPanel() {
   if (auth.recovery) return <RecoveryForm busy={busy} message={message} onSubmit={(nextPassword) => run(() => auth.updatePassword(nextPassword))} />
 
   if (auth.user) return <PanelHeading title="Account cloud" copy={auth.user.email ?? ''}>
-    <p>I dati locali non vengono caricati automaticamente.</p>
+    <p>Esci torna al benvenuto senza cancellare i dati del tuo account.</p>
     <CloudMigrationPanel />
     {message && <p className="cloud-account-message" role="status">{message}</p>}
     <button className="button-secondary" disabled={busy} onClick={() => void run(auth.signOut)}><LogOut size={18} /> Esci</button>

@@ -1,17 +1,8 @@
 import { Download, FileDown, FileUp, Printer, ShieldCheck, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { backupFilename, createBackupJson } from '../lib/backup'
+import { downloadAppDataBackup } from '../lib/backupDownload'
 import { formatDate } from '../lib/date'
 import { useAppState } from '../state/AppState'
-
-const downloadText = (content: string, filename: string, type: string) => {
-  const url = URL.createObjectURL(new Blob([content], { type }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(url)
-}
 
 function BackupReport({ onClose }: { onClose: () => void }) {
   const { data, caregivers } = useAppState()
@@ -39,7 +30,7 @@ export function BackupManager() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const exportJson = () => {
-    downloadText(createBackupJson(data), backupFilename(), 'application/json')
+    downloadAppDataBackup(data)
     setMessage('Backup JSON scaricato. Conservalo in un posto sicuro.')
   }
 

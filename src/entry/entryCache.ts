@@ -27,6 +27,9 @@ export const loadGuestCache = () => load(GUEST_CACHE_KEY)
 export const saveGuestCache = (data: AppData) => save(GUEST_CACHE_KEY, data)
 export const loadAccountCache = (userId: string) => load(accountCacheKey(userId))
 export const saveAccountCache = (userId: string, data: AppData) => save(accountCacheKey(userId), data)
+export const clearAccountCache = (userId: string) => {
+  try { localStorage.removeItem(accountCacheKey(userId)) } catch {}
+}
 
 export const loadActiveScope = (): EntryScope => {
   try {

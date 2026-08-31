@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { loadCloudAppData, hasCloudPets } from './cloud/cloudBootstrapRepository'
+import { resetCloudAccountData } from './cloud/accountResetRepository'
+import { clearCloudLink } from './cloud/cloudLink'
 import { buildMigrationPlan } from './cloud/migrationPlan'
 import { importMigrationPlan } from './cloud/migrationRepository'
 import { BottomNav } from './components/BottomNav'
@@ -15,6 +17,7 @@ import {
   loadAccountCache,
   loadActiveScope,
   loadGuestCache,
+  clearAccountCache,
   hasHandledLocalImport,
   markLocalImportHandled,
   saveAccountCache,
@@ -193,6 +196,22 @@ function App() {
     setWelcomeMode('signup')
   }
 
+  const resetCloudData = async () => {
+    if (!auth.user) throw new Error('Accedi di nuovo prima di azzerare i dati cloud.')
+    const userId = auth.user.id
+    await resetCloudAccountData()
+    const empty = createEmptyAppData()
+    clearAccountCache(userId)
+    clearCloudLink(userId)
+    markLocalImportHandled(userId)
+    saveAccountCache(userId, empty)
+    saveActiveScope(`account:${userId}`)
+    setLocalImportData(null)
+    setImportHandled(true)
+    replaceData(empty)
+    setCloudState('empty')
+  }
+
   const completeCloudOnboarding = async (nextData: typeof data) => {
     if (!auth.user) return
     const user = auth.user
@@ -254,7 +273,7 @@ function App() {
   if (screen === 'local-onboarding') return <Onboarding />
   if (screen === 'cloud-onboarding') return <Onboarding onComplete={completeCloudOnboarding} />
 
-  return <EntryContext.Provider value={{ guestMode, requestAccount }}>
+  return <EntryContext.Provider value={{ guestMode, requestAccount, resetCloudData }}>
     <HashRouter><RoutedApp /></HashRouter>
   </EntryContext.Provider>
 }

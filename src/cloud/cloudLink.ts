@@ -25,3 +25,9 @@ export const saveCloudLink = (link: CloudLink) => {
   localStorage.setItem(CLOUD_LINK_KEY, JSON.stringify(link))
   window.dispatchEvent(new CustomEvent('cuccia:cloud-linked', { detail: link }))
 }
+
+export const clearCloudLink = (userId: string) => {
+  try {
+    if (loadCloudLink()?.userId === userId) localStorage.removeItem(CLOUD_LINK_KEY)
+  } catch {}
+}
