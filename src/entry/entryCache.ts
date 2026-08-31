@@ -1,9 +1,10 @@
-import { createBackupJson, parseBackupJson } from '../lib/backup'
-import type { AppData } from '../types'
+import { createBackupJson, parseBackupJson } from '../lib/backup.ts'
+import type { AppData } from '../types.ts'
 
 const GUEST_CACHE_KEY = 'cuccia:entry:guest:v1'
 const ACTIVE_SCOPE_KEY = 'cuccia:entry:active-scope:v1'
 const accountCacheKey = (userId: string) => `cuccia:entry:account:${userId}:v1`
+const importHandledKey = (userId: string) => `cuccia:entry:import-handled:${userId}:v1`
 
 export type EntryScope = 'guest' | `account:${string}`
 
@@ -39,5 +40,19 @@ export const loadActiveScope = (): EntryScope => {
 export const saveActiveScope = (scope: EntryScope) => {
   try {
     localStorage.setItem(ACTIVE_SCOPE_KEY, scope)
+  } catch {}
+}
+
+export const hasHandledLocalImport = (userId: string) => {
+  try {
+    return localStorage.getItem(importHandledKey(userId)) === 'true'
+  } catch {
+    return false
+  }
+}
+
+export const markLocalImportHandled = (userId: string) => {
+  try {
+    localStorage.setItem(importHandledKey(userId), 'true')
   } catch {}
 }

@@ -14,6 +14,8 @@ import {
   loadAccountCache,
   loadActiveScope,
   loadGuestCache,
+  hasHandledLocalImport,
+  markLocalImportHandled,
   saveAccountCache,
   saveActiveScope,
   saveGuestCache,
@@ -87,12 +89,16 @@ function App() {
   const [guestMode, setGuestMode] = useState(false)
   const [welcomeMode, setWelcomeMode] = useState<WelcomeMode>()
   const [cloudState, setCloudState] = useState<CloudPetState>('idle')
+  const [importHandled, setImportHandled] = useState(false)
+  const [localImportData, setLocalImportData] = useState<typeof data | null>(null)
   const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     if (auth.loading) return
     if (!auth.user) {
       setCloudState('idle')
+      setImportHandled(false)
+      setLocalImportData(null)
       return
     }
     let cancelled = false
@@ -102,8 +108,10 @@ function App() {
     const bootstrap = async () => {
       setGuestMode(false)
       setCloudState('checking')
+      setImportHandled(hasHandledLocalImport(user.id))
       const activeScope = loadActiveScope()
       if (activeScope === 'guest') saveGuestCache(startingData)
+      setLocalImportData(activeScope === 'guest' ? startingData : loadGuestCache())
       if (activeScope.startsWith('account:') && activeScope !== `account:${user.id}`) {
         saveAccountCache(activeScope.slice('account:'.length), startingData)
         replaceData(loadGuestCache() ?? createEmptyAppData())
@@ -118,10 +126,11 @@ function App() {
           replaceData(nextData)
           saveAccountCache(user.id, nextData)
           saveActiveScope(`account:${user.id}`)
+          markLocalImportHandled(user.id)
+          setImportHandled(true)
           setCloudState('ready')
           return
         }
-        if (cached) replaceData(cached)
         saveActiveScope(`account:${user.id}`)
         setCloudState('empty')
       } catch {
@@ -162,16 +171,20 @@ function App() {
 
   const completeCloudOnboarding = async (nextData: typeof data) => {
     if (!auth.user) return
-    saveAccountCache(auth.user.id, nextData)
-    saveActiveScope(`account:${auth.user.id}`)
+    const user = auth.user
+    saveAccountCache(user.id, nextData)
+    saveActiveScope(`account:${user.id}`)
     try {
       const plan = await buildMigrationPlan(nextData)
-      await importMigrationPlan(plan, auth.user)
-      replaceData(nextData)
+      await importMigrationPlan(plan, user)
+      const cloudData = await loadCloudAppData(user)
+      if (!cloudData.pets.length) throw new Error('La nuova scheda non risulta ancora disponibile nel cloud.')
+      markLocalImportHandled(user.id)
+      setImportHandled(true)
+      replaceData(cloudData)
+      saveAccountCache(user.id, cloudData)
       setCloudState('ready')
     } catch (error) {
-      replaceData(nextData)
-      setCloudState('empty')
       throw new Error(error instanceof Error
         ? `${error.message} La scheda è rimasta salvata sul dispositivo.`
         : 'Importazione non riuscita. La scheda è rimasta salvata sul dispositivo.')
@@ -184,21 +197,32 @@ function App() {
     hasSession: Boolean(auth.user),
     guestMode,
     cloudState,
-    localPetCount: data.pets.length,
+    localPetCount: localImportData?.pets.length ?? 0,
+    importHandled,
   })
 
   if (screen === 'loading') return <EntryLoadingScreen />
   if (screen === 'welcome') return <WelcomeScreen initialMode={welcomeMode} onGuest={enterGuestMode} />
   if (screen === 'cloud-error') return <CloudEntryErrorScreen onRetry={() => setRetryKey((value) => value + 1)} onSignOut={() => void auth.signOut()} />
-  if (screen === 'cloud-import' && auth.user) return <LocalDataImportScreen
-    data={data}
-    user={auth.user}
-    onImported={() => setCloudState('ready')}
+  const cloudUser = auth.user
+  if (screen === 'cloud-import' && cloudUser && localImportData) return <LocalDataImportScreen
+    data={localImportData}
+    user={cloudUser}
+    onImported={async () => {
+      const cloudData = await loadCloudAppData(cloudUser)
+      if (!cloudData.pets.length) throw new Error('I dati importati non risultano ancora disponibili nel cloud.')
+      markLocalImportHandled(cloudUser.id)
+      setImportHandled(true)
+      replaceData(cloudData)
+      saveAccountCache(cloudUser.id, cloudData)
+      setCloudState('ready')
+    }}
     onNewPet={() => {
-      saveGuestCache(data)
+      markLocalImportHandled(cloudUser.id)
+      setImportHandled(true)
       const empty = createEmptyAppData()
       replaceData(empty)
-      saveAccountCache(auth.user!.id, empty)
+      saveAccountCache(cloudUser.id, empty)
     }}
     onSignOut={() => void auth.signOut()}
   />

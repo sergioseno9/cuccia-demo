@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 import { buildMigrationPlan } from '../src/cloud/migrationPlan.ts'
 import { importMigrationPlan } from '../src/cloud/migrationRepository.ts'
 import { createDemoData } from '../src/lib/demo.ts'
+import { createEmptyHealth } from '../src/lib/migrate.ts'
+import { createEmptyProfile } from '../src/lib/profile.ts'
 
 const parseStatusEnv = () => {
   const output = execFileSync('./node_modules/.bin/supabase', ['status', '-o', 'env'], { encoding: 'utf8' })
@@ -69,6 +71,50 @@ try {
   assert.deepEqual(secondImport.counts, plan.counts)
   assert.equal(secondImport.reusedBatch, true)
 
+  const onboardingPetId = `onboarding-${suffix}`
+  const onboardingProfile = {
+    ...createEmptyProfile('cane', onboardingPetId),
+    name: 'Nuvola',
+    photo: 'data:image/jpeg;base64,/9j/2Q==',
+    weight: '4.2',
+  }
+  const onboardingPlan = await buildMigrationPlan({
+    schemaVersion: 2,
+    household: { caregivers: [{ id: 'owner', name: 'Sergio', role: 'Famiglia', color: '#D9694A' }] },
+    pets: [{
+      id: onboardingPetId,
+      profile: onboardingProfile,
+      health: createEmptyHealth(),
+      events: [],
+      trickProgress: {},
+      badges: [],
+    }],
+    selectedPetId: onboardingPetId,
+    selectedCaregiverId: 'owner',
+    tutorialDone: false,
+  })
+  const onboardingImport = await importMigrationPlan(
+    onboardingPlan,
+    secondLogin.data.user,
+    { client, saveLink: () => undefined },
+  )
+  assert.equal(onboardingImport.reusedBatch, false)
+  const createdPet = await client.from('pets')
+    .select('id,household_id,photo_path').eq('legacy_source_id', onboardingPetId).single()
+  assert.equal(createdPet.error, null)
+  assert.equal(createdPet.data.household_id, householdId)
+  assert.match(createdPet.data.photo_path, /profile\/photo-/)
+  const petMembership = await client.from('pet_members')
+    .select('id').eq('pet_id', createdPet.data.id).eq('user_id', userId).single()
+  assert.equal(petMembership.error, null)
+  const repeatedOnboarding = await importMigrationPlan(
+    onboardingPlan,
+    secondLogin.data.user,
+    { client, saveLink: () => undefined },
+  )
+  assert.equal(repeatedOnboarding.link.batchId, onboardingImport.link.batchId)
+  assert.equal(repeatedOnboarding.reusedBatch, true)
+
   const rollbackCounts = {
     pets: 1, activities: 0, healthEvents: 0, medications: 0,
     medicationLogs: 0, weightLogs: 0, documents: 0, contentProgress: 0,
@@ -94,7 +140,7 @@ try {
   assert.equal(removed.count, 0)
 
   assert.equal((await client.auth.signOut()).error, null)
-  console.log('PASS: auth completo, doppio import senza duplicati e rollback pulito')
+  console.log('PASS: auth, onboarding cloud con membership/foto, doppio import e rollback pulito')
 } finally {
   if (householdId) await admin.from('households').delete().eq('id', householdId)
   if (userId) await admin.auth.admin.deleteUser(userId)

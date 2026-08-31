@@ -16,6 +16,7 @@ interface EntryInput {
   guestMode: boolean
   cloudState: CloudPetState
   localPetCount: number
+  importHandled: boolean
 }
 
 export const decideEntryScreen = ({
@@ -24,6 +25,7 @@ export const decideEntryScreen = ({
   guestMode,
   cloudState,
   localPetCount,
+  importHandled,
 }: EntryInput): EntryScreen => {
   if (authLoading) return 'loading'
   if (!hasSession && !guestMode) return 'welcome'
@@ -31,5 +33,5 @@ export const decideEntryScreen = ({
   if (cloudState === 'checking' || cloudState === 'idle') return 'loading'
   if (cloudState === 'error') return 'cloud-error'
   if (cloudState === 'ready') return 'cloud-app'
-  return localPetCount ? 'cloud-import' : 'cloud-onboarding'
+  return localPetCount && !importHandled ? 'cloud-import' : 'cloud-onboarding'
 }

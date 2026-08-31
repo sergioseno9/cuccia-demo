@@ -21,7 +21,7 @@ export function LocalDataImportScreen({
 }: {
   data: AppData
   user: User
-  onImported: () => void
+  onImported: () => Promise<void> | void
   onNewPet: () => void
   onSignOut: () => void
 }) {
@@ -53,7 +53,7 @@ export function LocalDataImportScreen({
       setMessage(result.reusedBatch
         ? 'Questi dati erano già presenti: nessun duplicato creato.'
         : 'Importazione verificata. La copia locale resta disponibile.')
-      onImported()
+      await onImported()
     } catch (importError) {
       setError(`${importError instanceof Error ? importError.message : 'Importazione non riuscita.'} I dati locali sono rimasti intatti.`)
     } finally {
