@@ -1,9 +1,9 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
-import { getSupabaseClient } from '../lib/supabase'
+import { getSupabaseClient } from '../lib/supabase.ts'
 import type { PetProfile } from '../types'
-import { saveCloudLink } from './cloudLink'
+import { saveCloudLink } from './cloudLink.ts'
 import type { CloudLink } from './cloudLink'
-import { dataUrlToBlob, safeStorageName } from './dataUrl'
+import { dataUrlToBlob, safeStorageName } from './dataUrl.ts'
 import type { MigrationCounts, MigrationPlan, PlannedDocument, PlannedPet } from './migrationPlan'
 
 interface BatchRecord {
@@ -17,6 +17,11 @@ export interface CloudImportResult {
   link: CloudLink
   counts: MigrationCounts
   reusedBatch: boolean
+}
+
+interface CloudImportOptions {
+  client?: SupabaseClient
+  saveLink?: (link: CloudLink) => void
 }
 
 const assertNoError = (error: { message: string } | null) => {
@@ -226,8 +231,12 @@ const countImportedRows = async (client: SupabaseClient, batchId: string): Promi
   return result
 }
 
-export const importMigrationPlan = async (plan: MigrationPlan, user: User): Promise<CloudImportResult> => {
-  const client = getSupabaseClient()
+export const importMigrationPlan = async (
+  plan: MigrationPlan,
+  user: User,
+  options: CloudImportOptions = {},
+): Promise<CloudImportResult> => {
+  const client = options.client ?? getSupabaseClient()
   const householdId = await getOrCreateHousehold(client, user, plan.pets[0]?.pet.profile.name ?? '')
   const started = await client.rpc('begin_migration_batch', {
     target_household_id: householdId, fingerprint: plan.fingerprint, expected: plan.counts,
@@ -250,7 +259,7 @@ export const importMigrationPlan = async (plan: MigrationPlan, user: User): Prom
     }
     const counts = reusedBatch ? batch.imported_counts as MigrationCounts : await countImportedRows(client, batchId)
     const link: CloudLink = { userId: user.id, householdId, batchId, linkedAt: new Date().toISOString(), source: 'cloud' }
-    saveCloudLink(link)
+    ;(options.saveLink ?? saveCloudLink)(link)
     return { link, counts, reusedBatch }
   } catch (error) {
     if (uploadedPaths.length) await client.storage.from('pet-documents').remove(uploadedPaths)

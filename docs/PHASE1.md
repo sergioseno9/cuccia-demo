@@ -54,12 +54,14 @@ Prerequisito: Docker Desktop o Podman avviato e disponibile nel `PATH`.
 npm run supabase:start
 npm run supabase:reset
 npm run test:db
+npm run test:cloud
 npm run supabase:stop
 ```
 
 `supabase db reset` parte da un database pulito e applica, in ordine, tutti i file in
 `supabase/migrations/`. `supabase test db` esegue i test pgTAP in
-`supabase/tests/database/`.
+`supabase/tests/database/`. `npm run test:cloud` usa soltanto chiavi dello stack locale, crea un
+account temporaneo e verifica auth, doppio import idempotente e rollback prima di ripulire i dati.
 
 Il test RLS impersona quattro account e verifica:
 

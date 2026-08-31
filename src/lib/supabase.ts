@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isForbiddenSupabaseKey } from './supabaseKey'
+import { isForbiddenSupabaseKey } from './supabaseKey.ts'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim() ?? ''
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? ''
+const runtimeEnv = import.meta.env ?? {}
+const supabaseUrl = runtimeEnv.VITE_SUPABASE_URL?.trim() ?? ''
+const supabaseKey = runtimeEnv.VITE_SUPABASE_ANON_KEY?.trim() ?? ''
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey)
 
