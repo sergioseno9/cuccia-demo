@@ -1,12 +1,11 @@
 import { Cloud, KeyRound, LogIn, LogOut, Mail, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
+import { authErrorMessage } from '../auth/authMessages'
 import { useAuth } from '../auth/AuthContext'
 import { CloudMigrationPanel } from './CloudMigrationPanel'
 
 type AuthMode = 'login' | 'signup' | 'reset'
-const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'Operazione non riuscita. Riprova tra poco.'
-
 export function CloudAccountPanel() {
   const auth = useAuth()
   const [mode, setMode] = useState<AuthMode>('login')
@@ -19,7 +18,7 @@ export function CloudAccountPanel() {
   const run = async (action: () => Promise<string | void>) => {
     setBusy(true)
     setMessage('')
-    try { setMessage((await action()) ?? '') } catch (error) { setMessage(errorMessage(error)) } finally { setBusy(false) }
+    try { setMessage((await action()) ?? '') } catch (error) { setMessage(authErrorMessage(error)) } finally { setBusy(false) }
   }
 
   const submit = (event: FormEvent) => {

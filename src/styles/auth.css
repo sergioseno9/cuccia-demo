@@ -4,14 +4,14 @@
 .cloud-account-heading h2 { margin: 0; font: 700 20px/1.2 var(--font-sans); }
 .cloud-account-heading p, .cloud-account-panel > p { margin: 4px 0 0; color: var(--muted); font-size: 16px; }
 .auth-mode-switch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.auth-mode-switch button { min-height: 44px; border: 0; border-radius: 14px; background: #fff; color: var(--ink); font: 700 14px/1 var(--font-sans); }
+.auth-mode-switch button { min-height: 44px; border: 0; border-radius: 14px; background: #fff; color: var(--ink); font: 700 16px/1 var(--font-sans); }
 .auth-mode-switch button.is-active { background: color-mix(in srgb, var(--clay) 12%, white); color: var(--clay); }
 .auth-form { display: grid; gap: 16px; }
-.auth-form label { display: grid; gap: 8px; color: var(--ink); font: 700 14px/1.3 var(--font-sans); }
+.auth-form label { display: grid; gap: 8px; color: var(--ink); font: 700 16px/1.3 var(--font-sans); }
 .auth-form input { width: 100%; min-height: 48px; border: 1px solid color-mix(in srgb, var(--ink) 15%, white); border-radius: 14px; padding: 0 14px; background: #fff; color: var(--ink); font: 500 16px/1.3 var(--font-sans); }
 .auth-form input:focus-visible { outline: 3px solid color-mix(in srgb, var(--clay) 35%, transparent); outline-offset: 2px; }
 .auth-form .button-primary, .cloud-account-panel .button-secondary { min-height: 48px; justify-content: center; }
-.cloud-account-message { padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--sage) 12%, white); color: var(--ink) !important; font-size: 14px !important; }
+.cloud-account-message { padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--sage) 12%, white); color: var(--ink) !important; font-size: 16px !important; }
 .cloud-migration-panel { display: grid; gap: 14px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--ink) 8%, white); }
 .cloud-migration-title { display: flex; align-items: flex-start; gap: 12px; }
 .cloud-migration-title svg { color: var(--sage); flex: 0 0 auto; }
@@ -23,3 +23,52 @@
 .migration-counts dt { color: var(--muted); font-size: 13px; }
 .migration-counts dd { margin: 0; color: var(--ink); font-weight: 700; }
 @media (max-width: 420px) { .cloud-account-panel { padding: 20px; } .auth-mode-switch { grid-template-columns: 1fr; } }
+
+.welcome-shell { min-height: 100dvh; display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.welcome-card { width: min(100%, 480px); display: grid; gap: 28px; padding: 36px; border-radius: 22px; background: #fff; box-shadow: var(--soft-shadow); }
+.welcome-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.welcome-brand img { width: 42px; height: 42px; border-radius: 50%; }
+.welcome-copy { padding: 26px 0 18px; }
+.welcome-copy h1 { max-width: 390px; margin: 0 0 16px; font: 600 clamp(42px, 11vw, 58px)/.98 'Fraunces', serif; letter-spacing: -.045em; }
+.welcome-copy > p:last-child { margin: 0; color: var(--taupe); font-size: 17px; line-height: 1.6; }
+.welcome-actions, .welcome-auth-panel { display: grid; gap: 14px; }
+.welcome-actions .button-primary, .welcome-actions .button-secondary, .welcome-auth-panel .button-primary, .import-entry-card > .button-primary, .import-entry-card > .button-secondary { width: 100%; min-height: 54px; font-size: 16px; }
+.welcome-auth-panel { padding-top: 4px; }
+.welcome-auth-heading, .import-entry-heading { display: flex; align-items: flex-start; gap: 14px; }
+.welcome-auth-heading > svg, .import-entry-heading > svg { flex: 0 0 auto; color: var(--clay); }
+.welcome-auth-heading h1, .welcome-auth-heading h2, .import-entry-heading h1 { margin: 0; font: 600 30px/1.1 'Fraunces', serif; letter-spacing: -.025em; }
+.welcome-auth-heading p, .import-entry-card > p { margin: 6px 0 0; color: var(--taupe); font-size: 16px; line-height: 1.55; }
+.welcome-back, .welcome-reset-link, .welcome-guest { min-height: 44px; width: fit-content; border: 0; padding: 0; background: transparent; color: var(--clay); font-size: 16px; font-weight: 700; cursor: pointer; }
+.welcome-back { display: inline-flex; align-items: center; gap: 7px; }
+.welcome-reset-link { justify-self: start; }
+.welcome-guest { justify-self: center; margin-top: 4px; color: var(--taupe); text-decoration: underline; text-underline-offset: 4px; }
+.welcome-message, .welcome-error, .welcome-status { margin: 0; padding: 14px 16px; border-radius: 14px; font-size: 16px; line-height: 1.5; }
+.welcome-message { background: color-mix(in srgb, var(--sage) 12%, white); color: #53634b; }
+.welcome-error { background: color-mix(in srgb, var(--clay) 9%, white); color: #9c422c; }
+.welcome-status { background: color-mix(in srgb, var(--honey) 13%, white); color: var(--ink); }
+.entry-state-card, .entry-error-card { width: min(100%, 420px); display: grid; justify-items: center; gap: 18px; padding: 36px; border-radius: 22px; background: #fff; box-shadow: var(--soft-shadow); text-align: center; }
+.entry-state-card > svg { color: var(--sage); }
+.entry-state-card img { width: 82px; height: 82px; border-radius: 50%; }
+.entry-state-card p, .entry-error-card p { margin: 0; color: var(--taupe); font-size: 16px; line-height: 1.55; }
+.entry-error-card > svg { color: var(--clay); }
+.entry-error-card h1 { margin: 0; font: 600 36px/1 'Fraunces', serif; }
+.entry-error-card .button-primary, .entry-error-card .button-secondary { width: 100%; min-height: 52px; }
+.import-entry-card { gap: 22px; }
+.import-entry-card .migration-counts dt { font-size: 14px; }
+.import-signout { justify-self: center; }
+.guest-account-nudge { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; background: color-mix(in srgb, var(--sage) 8%, white); }
+.guest-account-nudge > svg { color: var(--sage); }
+.guest-account-nudge strong, .guest-account-nudge p { font-size: 16px; }
+.guest-account-nudge p { margin: 4px 0 0; color: var(--taupe); line-height: 1.45; }
+.guest-account-nudge .text-button { min-height: 44px; font-size: 16px; }
+.onboarding-finish-error { margin: 0; font-size: 16px; line-height: 1.5; }
+
+@media (max-width: 420px) {
+  .welcome-shell { align-items: stretch; padding: 0; }
+  .welcome-card { min-height: 100dvh; align-content: center; padding: 28px 22px; border-radius: 0; box-shadow: none; }
+  .welcome-copy { padding-block: 18px 8px; }
+  .welcome-copy h1 { font-size: clamp(40px, 13vw, 52px); }
+  .entry-state-card, .entry-error-card { align-self: center; margin: 20px; padding: 28px 22px; }
+  .guest-account-nudge { grid-template-columns: 28px minmax(0, 1fr); }
+  .guest-account-nudge .text-button { grid-column: 2; justify-self: start; }
+}

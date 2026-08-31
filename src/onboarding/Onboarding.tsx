@@ -3,16 +3,32 @@ import { useState } from 'react'
 import { ConditionPreferences, PhasePicker } from '../components/ProfilePreferences'
 import { PetAvatar } from '../components/PetAvatar'
 import { caregiverColors } from '../data'
+import { createDemoData } from '../lib/demo'
 import { createEmptyHealth } from '../lib/migrate'
 import { prepareLocalFile } from '../lib/images'
-import { createEmptyProfile, modulePresets, suggestLifePhase } from '../lib/profile'
+import { createEmptyProfile, modulePresets, suggestLifePhase, withRequiredModules } from '../lib/profile'
 import { useAppState } from '../state/AppState'
-import type { Caregiver, PetProfile, PetSpecies } from '../types'
+import type { AppData, Caregiver, HealthData, PetProfile, PetSpecies } from '../types'
 
 const stepTitles = ['Specie', 'Nome e foto', 'Età e fase', 'Dettagli', 'Peso', 'Microchip', 'Veterinario', 'Famiglia', 'Condizioni']
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
-export function Onboarding() {
+const onboardingData = (profile: PetProfile, health: HealthData, caregivers: Caregiver[]): AppData => {
+  const normalized = {
+    ...profile,
+    trackedModules: withRequiredModules(profile.trackedModules, profile.conditions, profile.species),
+  }
+  return {
+    schemaVersion: 2,
+    household: { caregivers },
+    pets: [{ id: normalized.id, profile: normalized, health, events: [], trickProgress: {}, badges: [] }],
+    selectedPetId: normalized.id,
+    selectedCaregiverId: caregivers[0]?.id ?? '',
+    tutorialDone: false,
+  }
+}
+
+export function Onboarding({ onComplete }: { onComplete?: (data: AppData) => Promise<void> | void }) {
   const { completeOnboarding, loadDemo } = useAppState()
   const [step, setStep] = useState(0)
   const [profile, setProfile] = useState<PetProfile>(() => createEmptyProfile('cane', createId()))
@@ -21,6 +37,8 @@ export function Onboarding() {
   ])
   const [caregiverName, setCaregiverName] = useState('')
   const [photoError, setPhotoError] = useState('')
+  const [finishError, setFinishError] = useState('')
+  const [finishing, setFinishing] = useState(false)
 
   const update = <Key extends keyof PetProfile>(key: Key, value: PetProfile[Key]) =>
     setProfile((current) => ({ ...current, [key]: value }))
@@ -65,14 +83,33 @@ export function Onboarding() {
     ? caregivers.some((caregiver) => caregiver.name.trim())
     : true
 
+  const finishWithData = async (data: AppData) => {
+    if (!onComplete) {
+      const pet = data.pets[0]
+      completeOnboarding(pet.profile, pet.health, data.household.caregivers)
+      return
+    }
+    setFinishing(true)
+    setFinishError('')
+    try {
+      await onComplete(data)
+    } catch (error) {
+      setFinishError(error instanceof Error ? error.message : 'Non riesco a completare il salvataggio. I dati inseriti restano disponibili.')
+    } finally {
+      setFinishing(false)
+    }
+  }
+
   const finish = () => {
     const cleanCaregivers = caregivers.filter((caregiver) => caregiver.name.trim())
     const health = createEmptyHealth()
     if (profile.weight) health.weights.push({
       id: createId(), value: Number(profile.weight), date: new Date().toISOString().slice(0, 10), documents: [],
     })
-    completeOnboarding(profile, health, cleanCaregivers)
+    void finishWithData(onboardingData(profile, health, cleanCaregivers))
   }
+
+  const useDemo = () => onComplete ? void finishWithData(createDemoData()) : loadDemo()
 
   return <main className="onboarding-shell">
     <div className="onboarding-brand"><img src="./dog-icon.svg" alt="" /><span>cuccia</span></div>
@@ -98,8 +135,9 @@ export function Onboarding() {
 
       {step === 8 && <div className="onboarding-content"><p className="eyebrow">Personalizzazione</p><h1>C’è qualcosa da tenere in vista?</h1><ConditionPreferences profile={profile} onChange={setProfile} /><label className="field"><span>Note sulle condizioni <small>opzionali</small></span><textarea value={profile.conditionNotes} onChange={(event) => update('conditionNotes', event.target.value)} /></label><p className="gentle-note"><Check size={18} /> Queste etichette organizzano i moduli. Non sono diagnosi.</p></div>}
 
-      <div className="onboarding-actions"><button className="button-secondary" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0}><ChevronLeft size={19} /> Indietro</button>{step < stepTitles.length - 1 ? <button className="button-primary" onClick={() => setStep((current) => current + 1)} disabled={!canContinue}>Avanti <ChevronRight size={19} /></button> : <button className="button-primary" onClick={finish}>Entra in Cuccia <Check size={19} /></button>}</div>
+      {finishError && <p className="field-error onboarding-finish-error" role="alert">{finishError}</p>}
+      <div className="onboarding-actions"><button className="button-secondary" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || finishing}><ChevronLeft size={19} /> Indietro</button>{step < stepTitles.length - 1 ? <button className="button-primary" onClick={() => setStep((current) => current + 1)} disabled={!canContinue || finishing}>Avanti <ChevronRight size={19} /></button> : <button className="button-primary" onClick={finish} disabled={finishing}>{finishing ? 'Salvataggio…' : 'Entra in Cuccia'} <Check size={19} /></button>}</div>
     </section>
-    <button className="demo-link" onClick={loadDemo}>Oppure prova con dati dimostrativi</button>
+    <button className="demo-link" onClick={useDemo} disabled={finishing}>Oppure prova con dati dimostrativi</button>
   </main>
 }

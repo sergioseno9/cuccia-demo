@@ -57,6 +57,7 @@ interface AppStateValue {
   completeOnboarding: (profile: PetProfile, health: HealthData, caregivers: Caregiver[]) => void
   deleteEvent: (id: string) => void
   importBackup: (json: string) => void
+  replaceData: (data: AppData) => void
   loadDemo: () => void
   removePet: (id: string) => void
   resetAll: () => void
@@ -89,6 +90,7 @@ export function AppStateProvider({ children, repository = localAppDataRepository
       return splitAppData(nextData)
     })
   }, [])
+  const replaceData = useCallback((nextData: AppData) => setData(nextData), [setData])
   const activePet = data.pets.find((pet) => pet.id === data.selectedPetId) ?? data.pets[0] ?? null
   const profile = activePet?.profile ?? null
   const caregivers = data.household.caregivers
@@ -182,6 +184,7 @@ export function AppStateProvider({ children, repository = localAppDataRepository
       setData(restored)
       setToast('Backup importato — dati ripristinati')
     },
+    replaceData,
     loadDemo: () => setData(createDemoData()),
     removePet: (id) => setData((current) => {
       const pets = current.pets.filter((pet) => pet.id !== id)
@@ -256,7 +259,7 @@ export function AppStateProvider({ children, repository = localAppDataRepository
       ]
       return { ...pet, trickProgress: progress, badges: [...pet.badges, ...badges] }
     })),
-  }), [activePet, caregivers, data, profile, toast])
+  }), [activePet, caregivers, data, profile, replaceData, toast])
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
 }
