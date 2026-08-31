@@ -151,6 +151,28 @@ function App() {
     }
   }, [auth.user, cloudState, data, guestMode])
 
+  useEffect(() => {
+    if (!auth.user || guestMode || cloudState !== 'ready' || data.pets.length > 0) return
+    let cancelled = false
+    const user = auth.user
+
+    const restoreCloudData = async () => {
+      try {
+        const cloudData = await loadCloudAppData(user)
+        if (cancelled) return
+        replaceData(cloudData)
+        saveAccountCache(user.id, cloudData)
+        saveActiveScope(`account:${user.id}`)
+        setCloudState(cloudData.pets.length ? 'ready' : 'empty')
+      } catch {
+        if (!cancelled) setCloudState('error')
+      }
+    }
+
+    void restoreCloudData()
+    return () => { cancelled = true }
+  }, [auth.user, cloudState, data.pets.length, guestMode, replaceData])
+
   const enterGuestMode = () => {
     const activeScope = loadActiveScope()
     if (activeScope.startsWith('account:')) saveAccountCache(activeScope.slice('account:'.length), data)
@@ -197,7 +219,8 @@ function App() {
     hasSession: Boolean(auth.user),
     guestMode,
     cloudState,
-    localPetCount: localImportData?.pets.length ?? 0,
+    currentPetCount: data.pets.length,
+    localImportPetCount: localImportData?.pets.length ?? 0,
     importHandled,
   })
 

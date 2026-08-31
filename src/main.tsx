@@ -8,6 +8,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AppStateProvider } from './state/AppState'
 import './styles/base.css'
 import './styles/components.css'
@@ -30,10 +31,12 @@ import './styles/auth.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <AppStateProvider>
-        <App />
-      </AppStateProvider>
-    </AuthProvider>
+    <AppErrorBoundary>
+      <AuthProvider>
+        <AppStateProvider>
+          <App />
+        </AppStateProvider>
+      </AuthProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 )

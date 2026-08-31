@@ -10,40 +10,44 @@ const entry = (overrides: Partial<Parameters<typeof decideEntryScreen>[0]> = {})
   hasSession: false,
   guestMode: false,
   cloudState: 'idle',
-  localPetCount: 0,
+  currentPetCount: 0,
+  localImportPetCount: 0,
   importHandled: false,
   ...overrides,
 })
 
 test('senza sessione mostra sempre il benvenuto', () => {
   assert.equal(entry(), 'welcome')
-  assert.equal(entry({ localPetCount: 2 }), 'welcome')
+  assert.equal(entry({ currentPetCount: 2 }), 'welcome')
 })
 
 test('la modalità ospite conserva onboarding e app locali', () => {
   assert.equal(entry({ guestMode: true }), 'local-onboarding')
-  assert.equal(entry({ guestMode: true, localPetCount: 1 }), 'local-app')
+  assert.equal(entry({ guestMode: true, currentPetCount: 1 }), 'local-app')
+  assert.equal(entry({ guestMode: true, currentPetCount: 0, localImportPetCount: 1 }), 'local-onboarding')
 })
 
 test('un account viene deciso dalla presenza di pet cloud', () => {
   assert.equal(entry({ hasSession: true, cloudState: 'checking' }), 'loading')
   assert.equal(entry({ hasSession: true, cloudState: 'empty' }), 'cloud-onboarding')
-  assert.equal(entry({ hasSession: true, cloudState: 'empty', localPetCount: 1 }), 'cloud-import')
-  assert.equal(entry({ hasSession: true, cloudState: 'empty', localPetCount: 1, importHandled: true }), 'cloud-onboarding')
-  assert.equal(entry({ hasSession: true, cloudState: 'ready' }), 'cloud-app')
+  assert.equal(entry({ hasSession: true, cloudState: 'empty', localImportPetCount: 1 }), 'cloud-import')
+  assert.equal(entry({ hasSession: true, cloudState: 'empty', localImportPetCount: 1, importHandled: true }), 'cloud-onboarding')
+  assert.equal(entry({ hasSession: true, cloudState: 'ready', currentPetCount: 1 }), 'cloud-app')
+  assert.equal(entry({ hasSession: true, cloudState: 'ready', currentPetCount: 0 }), 'loading')
 })
 
 test('nuova scheda e import completato non riaprono la scelta locale', () => {
   assert.equal(entry({
     hasSession: true,
     cloudState: 'empty',
-    localPetCount: 1,
+    localImportPetCount: 1,
     importHandled: true,
   }), 'cloud-onboarding')
   assert.equal(entry({
     hasSession: true,
     cloudState: 'ready',
-    localPetCount: 1,
+    currentPetCount: 1,
+    localImportPetCount: 1,
     importHandled: false,
   }), 'cloud-app')
 })

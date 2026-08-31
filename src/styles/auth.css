@@ -63,6 +63,14 @@
 .guest-account-nudge .text-button { min-height: 44px; font-size: 16px; }
 .onboarding-finish-error { margin: 0; font-size: 16px; line-height: 1.5; }
 
+.app-error-shell { min-height: 100dvh; display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.app-error-card { width: min(100%, 480px); display: grid; gap: 28px; padding: 36px; border-radius: 22px; background: #fff; box-shadow: var(--soft-shadow); }
+.app-error-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 18px; font-weight: 800; }
+.app-error-brand img { width: 42px; height: 42px; border-radius: 50%; }
+.app-error-copy h1 { margin: 0 0 14px; font: 600 clamp(38px, 10vw, 52px)/1 'Fraunces', serif; letter-spacing: -.04em; }
+.app-error-copy > p:last-child { margin: 0; color: var(--taupe); font-size: 17px; line-height: 1.6; }
+.app-error-card .button-primary { width: 100%; min-height: 54px; justify-content: center; font-size: 16px; }
+
 @media (max-width: 420px) {
   .welcome-shell { align-items: stretch; padding: 0; }
   .welcome-card { min-height: 100dvh; align-content: center; padding: 28px 22px; border-radius: 0; box-shadow: none; }
@@ -71,4 +79,6 @@
   .entry-state-card, .entry-error-card { align-self: center; margin: 20px; padding: 28px 22px; }
   .guest-account-nudge { grid-template-columns: 28px minmax(0, 1fr); }
   .guest-account-nudge .text-button { grid-column: 2; justify-self: start; }
+  .app-error-shell { align-items: stretch; padding: 0; }
+  .app-error-card { min-height: 100dvh; align-content: center; padding: 28px 22px; border-radius: 0; box-shadow: none; }
 }

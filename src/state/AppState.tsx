@@ -10,6 +10,7 @@ import { StorageQuotaError } from '../lib/storage'
 import { localAppDataRepository } from '../repositories/appDataRepository'
 import type { AppDataRepository } from '../repositories/appDataRepository'
 import { joinAppData, splitAppData } from './appStateModel'
+import { resetLocalData } from './resetLocalData'
 import type {
   AppData,
   CareEvent,
@@ -191,11 +192,9 @@ export function AppStateProvider({ children, repository = localAppDataRepository
       return { ...current, pets, selectedPetId: pets[0]?.id ?? '' }
     }),
     resetAll: () => {
-      repository.clear()
-      Object.keys(localStorage)
-        .filter((key) => key.startsWith('cuccia:guide-checklist:'))
-        .forEach((key) => localStorage.removeItem(key))
-      setData({ schemaVersion: 2, household: { caregivers: [] }, pets: [], selectedPetId: '', selectedCaregiverId: '', tutorialDone: false })
+      const reset = resetLocalData(repository)
+      setData(reset.data)
+      if (!reset.storageCleared) setToast('Non sono riuscito a pulire tutto il browser. Riprova tra poco.')
     },
     selectCaregiver: (id) => setData((current) => ({ ...current, selectedCaregiverId: id })),
     selectPet: (id) => setData((current) => ({ ...current, selectedPetId: id })),
