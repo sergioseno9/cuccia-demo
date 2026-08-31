@@ -7,6 +7,7 @@ import '@fontsource/plus-jakarta-sans/700.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { AuthProvider } from './auth/AuthContext'
 import { AppStateProvider } from './state/AppState'
 import './styles/base.css'
 import './styles/components.css'
@@ -25,11 +26,14 @@ import './styles/discover-pages.css'
 import './styles/discover-details.css'
 import './styles/path-screen.css'
 import './styles/pet-card.css'
+import './styles/auth.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppStateProvider>
-      <App />
-    </AppStateProvider>
+    <AuthProvider>
+      <AppStateProvider>
+        <App />
+      </AppStateProvider>
+    </AuthProvider>
   </StrictMode>,
 )
