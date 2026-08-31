@@ -15,7 +15,12 @@ const parseStatusEnv = () => {
   }))
 }
 
-const status = parseStatusEnv()
+const remoteStatus = {
+  API_URL: process.env.SUPABASE_TEST_URL,
+  PUBLISHABLE_KEY: process.env.SUPABASE_TEST_ANON_KEY,
+  SERVICE_ROLE_KEY: process.env.SUPABASE_TEST_SERVICE_ROLE_KEY,
+}
+const status = Object.values(remoteStatus).every(Boolean) ? remoteStatus : parseStatusEnv()
 const apiUrl = status.API_URL ?? status.SUPABASE_URL
 const anonKey = status.ANON_KEY ?? status.PUBLISHABLE_KEY
 const serviceKey = status.SERVICE_ROLE_KEY
@@ -24,36 +29,63 @@ if (!apiUrl || !anonKey || !serviceKey) throw new Error('Credenziali dello stack
 const admin = createClient(apiUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
 const client = createClient(apiUrl, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
 const suffix = crypto.randomUUID()
-const email = `phase1-${suffix}@example.test`
+const isRemote = Boolean(process.env.SUPABASE_TEST_URL)
+const email = isRemote
+  ? `cuccia.phase1.${suffix}@gmail.com`
+  : `phase1-${suffix}@example.test`
 const firstPassword = `Cuccia-${suffix}-A1!`
 const secondPassword = `Cuccia-${suffix}-B2!`
 let userId = ''
 let householdId = ''
 
 try {
-  const signUp = await client.auth.signUp({ email, password: firstPassword })
-  assert.equal(signUp.error, null)
-  assert.ok(signUp.data.user)
-  assert.equal(signUp.data.session, null, 'la conferma email deve essere richiesta')
-  userId = signUp.data.user.id
+  if (isRemote) {
+    const createdUser = await admin.auth.admin.createUser({
+      email, password: firstPassword, email_confirm: true,
+    })
+    assert.equal(createdUser.error, null)
+    assert.ok(createdUser.data.user)
+    userId = createdUser.data.user.id
+  } else {
+    const signUp = await client.auth.signUp({ email, password: firstPassword })
+    assert.equal(signUp.error, null)
+    assert.ok(signUp.data.user)
+    assert.equal(signUp.data.session, null, 'la conferma email deve essere richiesta')
+    userId = signUp.data.user.id
+  }
 
-  const confirmation = await admin.auth.admin.updateUserById(userId, { email_confirm: true })
-  assert.equal(confirmation.error, null)
+  const automaticProfile = await admin.from('profiles')
+    .select('id,display_name').eq('id', userId).single()
+  assert.equal(automaticProfile.error, null)
+  assert.equal(automaticProfile.data.id, userId)
+
+  const removeProfile = await admin.from('profiles').delete().eq('id', userId)
+  assert.equal(removeProfile.error, null)
+
+  if (!isRemote) {
+    const confirmation = await admin.auth.admin.updateUserById(userId, { email_confirm: true })
+    assert.equal(confirmation.error, null)
+  }
 
   const login = await client.auth.signInWithPassword({ email, password: firstPassword })
   assert.equal(login.error, null)
   assert.ok(login.data.session)
 
-  const resetRequest = await client.auth.resetPasswordForEmail(email)
-  assert.equal(resetRequest.error, null)
-  const recovery = await admin.auth.admin.generateLink({ type: 'recovery', email })
-  assert.equal(recovery.error, null)
-  const tokenHash = recovery.data.properties.hashed_token
-  assert.ok(tokenHash)
-  const recoverySession = await client.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
-  assert.equal(recoverySession.error, null)
-  const passwordUpdate = await client.auth.updateUser({ password: secondPassword })
-  assert.equal(passwordUpdate.error, null)
+  if (isRemote) {
+    const passwordUpdate = await admin.auth.admin.updateUserById(userId, { password: secondPassword })
+    assert.equal(passwordUpdate.error, null)
+  } else {
+    const resetRequest = await client.auth.resetPasswordForEmail(email)
+    assert.equal(resetRequest.error, null)
+    const recovery = await admin.auth.admin.generateLink({ type: 'recovery', email })
+    assert.equal(recovery.error, null)
+    const tokenHash = recovery.data.properties.hashed_token
+    assert.ok(tokenHash)
+    const recoverySession = await client.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
+    assert.equal(recoverySession.error, null)
+    const passwordUpdate = await client.auth.updateUser({ password: secondPassword })
+    assert.equal(passwordUpdate.error, null)
+  }
   assert.equal((await client.auth.signOut()).error, null)
 
   const secondLogin = await client.auth.signInWithPassword({ email, password: secondPassword })
@@ -65,6 +97,19 @@ try {
   householdId = firstImport.link.householdId
   assert.deepEqual(firstImport.counts, plan.counts)
   assert.equal(firstImport.reusedBatch, false)
+
+  const repairedProfile = await admin.from('profiles')
+    .select('id').eq('id', userId).single()
+  assert.equal(repairedProfile.error, null)
+  const household = await client.from('households')
+    .select('id,created_by').eq('id', householdId).single()
+  assert.equal(household.error, null)
+  assert.equal(household.data.created_by, userId)
+  const householdMembership = await client.from('household_members')
+    .select('id,role,status').eq('household_id', householdId).eq('user_id', userId).single()
+  assert.equal(householdMembership.error, null)
+  assert.equal(householdMembership.data.role, 'owner')
+  assert.equal(householdMembership.data.status, 'active')
 
   const secondImport = await importMigrationPlan(plan, secondLogin.data.user, { client, saveLink: () => undefined })
   assert.equal(secondImport.link.batchId, firstImport.link.batchId)
@@ -140,7 +185,12 @@ try {
   assert.equal(removed.count, 0)
 
   assert.equal((await client.auth.signOut()).error, null)
-  console.log('PASS: auth, onboarding cloud con membership/foto, doppio import e rollback pulito')
+  const reloadLogin = await client.auth.signInWithPassword({ email, password: secondPassword })
+  assert.equal(reloadLogin.error, null)
+  const reloadedPet = await client.from('pets').select('id').eq('id', createdPet.data.id).single()
+  assert.equal(reloadedPet.error, null)
+  assert.equal((await client.auth.signOut()).error, null)
+  console.log('PASS: profilo auth automatico, autoriparazione legacy, onboarding cloud, reload, doppio import e rollback pulito')
 } finally {
   if (householdId) await admin.from('households').delete().eq('id', householdId)
   if (userId) await admin.auth.admin.deleteUser(userId)
