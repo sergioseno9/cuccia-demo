@@ -10,9 +10,11 @@ Identità visiva: `docs/brand/`. Contenuti editoriali: `docs/GUIDE_CONTENT.md`.
 
 ## Tech stack
 
-**Fase 0 — prototipo web locale:** Vite + React + TypeScript strict, `react-router-dom`,
-`lucide-react`, dati in `localStorage`. Nessun backend, account reale, push o paywall.
-Expo + Supabase restano nella visione futura ma NON ora.
+**Stato attuale — web app con Supabase Fase 1:** Vite + React + TypeScript strict,
+`react-router-dom`, `lucide-react`. La modalità locale usa `localStorage`; la modalità account
+usa Supabase Auth, Postgres, Storage, migration versionate e RLS. Il passaggio locale→cloud è
+esplicito e idempotente. Non esistono ancora push, shell nativa o paywall; Capacitor resta la
+direzione prevista per le fasi native, senza riscrivere la UI React.
 
 ## Comandi
 
@@ -22,16 +24,19 @@ Expo + Supabase restano nella visione futura ma NON ora.
 - Build: `npm run build`
 - Preview build: `npm run preview`
 - Audit dipendenze: `npm run audit`
+- Test RLS locale: `npm run test:db` (richiede Docker/Supabase locale)
+- Acceptance cloud: `npm run test:cloud` (richiede credenziali test server, mai `VITE_*`)
 
 ## Architettura prodotto
 
 La bottom navigation ha cinque schermate:
 
-- **Home:** selettore pet, hero fotografico, massimo tre scadenze e Pet Card; niente logging.
+- **Home:** selettore pet, hero fotografico, massimo tre scadenze, orari uscite e Pet Card;
+  niente logging.
 - **Diario:** CTA unica, caregiver, attività di oggi e giorni precedenti in accordion.
 - **Cura:** due dati chiave e indice del libretto; record e inserimento vivono nei dettagli.
-- **Scopri:** tre ingressi — quiz, consiglio, giochi e trucchi — con libreria completa nel dettaglio.
-- **Profilo:** identità, animali in famiglia e quattro menu per tutti gli strumenti esistenti.
+- **Scopri:** esattamente tre ingressi — Quiz, Guide, Giochi & trucchi — su pagine separate.
+- **Profilo:** identità, animali in famiglia e menu essenziali; “Modifica pet” è una pagina.
 
 ## Modello multi-animale
 
@@ -47,35 +52,37 @@ La bottom navigation ha cinque schermate:
 
 - `lifePhase`: `cucciolo | adulto | senior`, scelta manuale; per il gatto “cucciolo” si
   presenta come “Gattino”. Default `adulto`; la nascita suggerisce ma non decide.
-- `trackedModules` per pet: Uscite, Peso, Farmaci, Toelettatura/bagno e Lettiera per il gatto.
-- Il cane ha Uscite attivo di default; il gatto non ha passeggiate e Lettiera è opzionale.
+- `trackedModules` resta nel modello soltanto per compatibilità con dati e migrazioni esistenti:
+  non ha più UI e non pilota la visibilità.
+- Il Diario deriva le azioni dalla specie e dalle condizioni: Uscita per il cane, Lettiera per
+  il gatto, Pipì/Cacca soltanto con `problemi_urinari` o `potty_training`.
 - `conditions`: `problemi_urinari`, `terapia_in_corso`, `mobilita_ridotta`,
   `peso_controllato`, `potty_training`. Sono etichette organizzative, mai diagnosi.
-- Pipì/cacca compaiono solo con `problemi_urinari` o `potty_training`; per il gatto queste
-  condizioni attivano il modulo Lettiera.
-- Il nudge uscite usa soltanto `outingIntervalHours` impostato dall’utente e fatti registrati.
+- Gli orari abituali delle uscite sono dati per pet: Home e Impostazioni usano la stessa fonte;
+  ogni orario può avere un promemoria in-app attivo e viene segnato fatto vicino a un’uscita.
 
 ## Dati e interazioni
 
 - La registrazione vive nel Diario: Uscita per il cane, Pappa, Nota e Farmaco con terapia.
 - Acqua non compare. Ogni azione apre sempre il popup con data, ora, caregiver e nota.
 - Le uscite accettano durata 15/30/45/60 minuti o personalizzata.
-- Modifiche ed eliminazioni conservano audit locale e soft-delete.
+- Il Diario conserva audit e soft-delete. I record Cura supportano aggiunta, modifica ed
+  eliminazione per vaccini, prevenzione/sverminazione, farmaci, visite, peso, grooming e documenti.
 - Lo scadenzario deriva da richiami, antiparassitari con pausa stagionale, sverminazione,
   terapie, visite, controllo annuale, assicurazione e verifica dati microchip.
 - Cura include lotto e scadenza vaccino, documenti sulle voci, peso, condizioni/malattie,
   microchip e toelettatura come memoria morbida, fuori dal Diario.
-- La Pet Card funziona offline. Badge e progressi non usano streak, classifiche o penalità.
-- Clicker e fischietto sono utility locali; l’addestramento usa solo rinforzo positivo.
+- La Pet Card ridisegnata funziona offline, è stampabile/PDF e condivisibile. Badge e progressi
+  non usano streak, classifiche o penalità. L’addestramento usa solo rinforzo positivo.
 
 ## Onboarding e tutorial
 
 Onboarding in nove passaggi: specie → nome/foto → nascita/fase → sesso/razza/taglia → peso →
-microchip → veterinario/contatto → caregiver → condizioni. Nessuno step “Cosa seguo”: i
-moduli partono da specie/fase e si modificano dal Profilo.
+microchip → veterinario/contatto → caregiver → condizioni. Non esiste uno step di selezione
+moduli; l’interfaccia deriva le azioni da specie e condizioni.
 
-Dopo l’onboarding parte un tutorial skippabile di quattro coach-mark: Home, Diario, Cura,
-Scopri. Deve navigare alle sezioni e restare riapribile dal Profilo.
+Dopo l’onboarding parte un tutorial skippabile: cinque coach-mark per il cane (incluso il blocco
+Uscite in Home), quattro per il gatto. Naviga alle sezioni e resta riapribile dal Profilo.
 
 ## Principi di UX
 
@@ -98,7 +105,8 @@ Scopri. Deve navigare alle sezioni e restare riapribile dal Profilo.
 - Uscite e attività mostrano fatti descrittivi. Mai allarmi, correzioni o “deve uscire”.
 - Le passeggiate non rappresentano tutta l’attività; mai usare passi generici del telefono.
 - Ogni evento conserva autore e timestamp; le modifiche mantengono l’audit trail.
-- Reminder solo in-app in Fase 0. Push affidabili e sincronizzazione arrivano in Fase 1.
+- I promemoria uscite sono solo in-app e funzionano ad app aperta. Le push affidabili richiedono
+  una fase nativa successiva e test su device; non dichiararle disponibili prima di allora.
 - Niente abbonamenti, paywall, advertising, social interno o dark pattern.
 - Le guide sono statiche: niente chatbot, diagnosi, dosaggi o consigli personalizzati; solo
   metodi gentili. Ogni guida chiude con “Quando chiamare il veterinario” e disclaimer.

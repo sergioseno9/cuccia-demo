@@ -1,13 +1,16 @@
-# Cuccia — Audit architetturale · Phase 0
+# Cuccia — Audit architetturale · Stato dopo Supabase Fase 1
 
-Stato: **solo analisi e decisione architetturale**. In questa fase non vengono aggiunti backend,
-SDK, chiavi, migrazioni o funzionalità. Il repository continua a essere la demo locale esistente.
+Stato aggiornato: React/Vite e il design system sono invariati; Supabase Fase 1 è implementata
+con Auth email/password, schema e migration versionate, RLS, Storage privato, bootstrap profilo,
+RPC transazionali, reset account e import locale→cloud idempotente. La modalità guest locale resta
+disponibile. Capacitor, push, GPS/background e realtime familiare non sono ancora implementati.
 
 ## 1. Decisione in breve
 
-Confermare **React + Vite + TypeScript**, aggiungere **Supabase** come backend e **Capacitor** come
-contenitore nativo, senza riscrivere UI e design system. React Native/Expo non offre oggi un
-vantaggio sufficiente a giustificare una riscrittura delle schermate già responsive.
+La decisione resta **React + Vite + TypeScript + Supabase**, con **Capacitor** previsto come
+contenitore nativo senza riscrivere UI e design system. Supabase Fase 1 è ora innestata nel
+frontend esistente; React Native/Expo non offre un vantaggio sufficiente a giustificare una
+riscrittura delle schermate già responsive.
 
 Capacitor è adeguato per shell iOS/Android, push, deep link e tracking GPS avviato esplicitamente.
 Non basta, da solo, a garantire Smart Walk Detection: il plugin Geolocation ufficiale dichiara
@@ -30,9 +33,12 @@ Fonti tecniche: [Capacitor](https://capacitorjs.com/docs),
 
 - SPA mobile-first: React 19, Vite 8, TypeScript strict, React Router e Lucide.
 - Font locali `@fontsource`: Fraunces e Plus Jakarta Sans; nessun font remoto necessario.
-- Versioni fissate in `package.json`; nessun client HTTP, backend SDK, state manager o database.
-- Test attuali: `node:test`, 7 casi su migrazione, backup, reminder e quiz; nessun test UI/E2E.
-- `.env.example` contiene soltanto URL pubblici vuoti; non risultano credenziali nel codice.
+- Versioni fissate in `package.json`; Supabase JS è il solo SDK backend e non esiste uno state
+  manager aggiuntivo.
+- Test attuali: `node:test` per dominio/wiring/layout, pgTAP per schema/RLS e acceptance cloud
+  dedicata; manca ancora un runner browser E2E completo.
+- `.env.example` contiene soltanto URL e chiave pubblica vuoti; il client rifiuta service-role o
+  secret key riconoscibili e non risultano credenziali committate.
 
 ### Routing e struttura UI
 
@@ -40,20 +46,21 @@ Fonti tecniche: [Capacitor](https://capacitorjs.com/docs),
 - Cinque tab persistenti: Home, Diario, Cura, Scopri, Profilo.
 - Sottopagine Scopri per quiz, guide, giochi, percorsi e trucchi; i dettagli Care/Profile sono
   prevalentemente dialog controllati da stato locale.
-- Onboarding fuori dal router finché `pets[]` è vuoto; tutorial a quattro coach-mark dopo l’avvio.
-- Il path esistente `/scopri/traucco/:id` contiene un refuso, ma non viene corretto in Phase 0.
+- Onboarding fuori dal router finché il relativo account/modalità non ha pet; tutorial a cinque
+  coach-mark per il cane e quattro per il gatto.
+- Le rotte Scopri sono `/scopri/quiz`, `/scopri/guide`, `/scopri/giochi`,
+  `/scopri/percorso/:pathId`, `/scopri/trucco/:id` e `/scopri/guida/:guideId`.
 - Per futuri deep link nativi si può mantenere HashRouter e tradurre `appUrlOpen` in una rotta;
   non serve cambiare router prima che esista un requisito verificato.
 
 ### Componenti e stato
 
-- 18 componenti, 13 screen, 15 moduli di dominio/storage e 17 fogli CSS.
 - `AppStateProvider` è l’unico stato globale: conserva l’intero `AppData`, il pet attivo, il
-  caregiver simulato, toast e tutte le mutazioni.
-- Le schermate dipendono dal contratto `useAppState`; questo contratto è il punto migliore in cui
-  innestare repository e sincronizzazione mantenendo invariata la UI.
-- Non esiste separazione tra comandi dominio, cache e persistence: ogni modifica aggiorna React e
-  un `useEffect` riscrive tutto lo snapshot locale.
+  caregiver, toast e le mutazioni. `AuthProvider` gestisce separatamente la sessione Supabase.
+- Le schermate dipendono dal contratto `useAppState`; repository cloud tipizzati sono innestati
+  dietro tale contratto per profilo, Cura, documenti, onboarding/import e reset account.
+- Stato React e cache locale ricevono subito le modifiche; la copertura cloud non è ancora
+  completa per Diario, caregiver, multi-pet e progressi Scopri e non esiste ancora una outbox.
 - Gli ID sono UUID browser quando disponibili, con fallback timestamp/casuale.
 
 ### Persistence, backup e tipi
@@ -65,6 +72,8 @@ Fonti tecniche: [Capacitor](https://capacitorjs.com/docs),
 - Foto e allegati sono compressi localmente e salvati come Data URL. I file non immagine sono
   limitati a 2,5 MB; resta un limite strutturale di quota del `localStorage`.
 - `StorageQuotaError` avvisa senza scartare lo stato React corrente.
+- In modalità account, snapshot e signed URL vengono letti dai repository Supabase; la cache
+  account/guest resta separata per evitare che un logout esponga dati cloud come dati locali.
 - Checklist guide in chiavi `cuccia:guide-checklist:*`, separate da `AppData`.
 - Tipi TS espliciti per pet, eventi, Care, quiz e progressi; nessun `any` applicativo dichiarato.
 - Audit degli eventi già presente tramite `editedBy/editedAt` e soft-delete `deletedBy/deletedAt`.
@@ -80,28 +89,30 @@ Fonti tecniche: [Capacitor](https://capacitorjs.com/docs),
 
 ### Funzionalità già presenti
 
-- Multi-pet cane/gatto, selettore globale, fase di vita, moduli e condizioni organizzative.
-- Home con identità, massimo tre scadenze derivate e Pet Card offline.
+- Multi-pet cane/gatto, selettore globale, fase di vita e condizioni organizzative. Il campo
+  `trackedModules` è solo compatibilità dati e non pilota più l’interfaccia.
+- Home con identità, massimo tre scadenze derivate, riepilogo orari uscite cane e Pet Card offline.
 - Diario opzionale con autore/orario, pappa, nota, passeggiata cane, farmaco, bisogni/lettiera
   condizionali, durata, modifica, soft-delete e accordion per giorno.
 - Cura: vaccini con richiamo/lotto/scadenza, antiparassitari e sverminazione con cadenza/pausa,
-  farmaci e dosi, visite, peso/grafico, grooming, documenti, microchip, allergie e condizioni.
-- Profilo: alimentazione, veterinario, emergenza, toelettatore, famiglia simulata, preferenze,
-  backup/export/import/PDF, reset e riapertura tutorial.
+  farmaci e dosi, visite, peso/grafico, grooming, documenti, microchip, allergie e condizioni;
+  tutti i record hanno aggiunta, modifica ed eliminazione.
+- Profilo: pagina “Modifica pet”, alimentazione, veterinario, emergenza, toelettatore, famiglia,
+  orari uscite, backup/export/import/PDF, reset locale/cloud e riapertura tutorial.
 - Scadenzario in-app da dati confermati per vaccini, prevenzione, farmaci, visite, controllo
   annuale, assicurazione e verifica microchip.
-- Pet Card offline stampabile/PDF e condivisibile come testo.
+- Pet Card ridisegnata, offline, stampabile/PDF e condivisibile.
 - Scopri: quiz deterministico per pet, guide statiche/checklist, giochi, trucchi, percorsi e badge.
-- Onboarding in nove passaggi e tutorial skippabile in quattro passaggi.
-- Assenti: account reali, inviti, sync/realtime, Storage cloud, push, GPS, background location,
-  deduplicazione distribuita, Travel Mode, timeline/memories e link Pet Card temporanei.
+- Onboarding in nove passaggi e tutorial skippabile in cinque passaggi cane/quattro gatto.
+- Presenti: account email/password, profilo auth automatico, schema/RLS, Storage privato e import
+  batch idempotente. Assenti: inviti familiari, sync/realtime completi, outbox, push, GPS,
+  background location, Travel Mode, timeline/memories e link Pet Card temporanei.
 
-### Drift documentale rilevato
+### Confine prodotto corrente
 
-`AGENTS.md` e il codice mostrano Scopri con Quiz, Guide e Giochi; `PROJECT_BRIEF.md` cita ancora
-“Consiglio del momento”, clicker e fischietto, già rimossi dal codice. La spec impone di fermare
-l’espansione di Scopri: nelle fasi successive il codice corrente è la fonte di verità e il brief
-andrà riallineato in un commit documentale separato.
+Scopri espone soltanto Quiz, Guide e Giochi & trucchi, su pagine separate. Non sono presenti
+utility audio o suggerimenti dinamici. La Fase 1 non amplia Scopri e non introduce diagnosi,
+health score, OCR o salvataggi sanitari automatici.
 
 ## 3. Architettura minima proposta
 
@@ -119,8 +130,8 @@ Adapter Capacitor: push, share, deep link, GPS e plugin nativi verificati
 2. Estrarre gradualmente da `AppStateProvider` repository e comandi, mantenendo inizialmente la
    stessa API pubblica per evitare modifiche alle schermate.
 3. Separare stato UI locale (pet selezionato, toast, tutorial) da dati condivisi cloud.
-4. Usare Supabase come fonte canonica solo dopo import verificato; realtime aggiorna la cache ma
-   non sostituisce query iniziale, retry e riconciliazione.
+4. Supabase diventa fonte canonica dell’account solo dopo import verificato; il realtime futuro
+   dovrà aggiornare la cache senza sostituire query iniziale, retry e riconciliazione.
 5. Per l’offline, introdurre in Phase 2 una outbox persistente con `client_mutation_id`, retry e
    stato `pending/synced/failed`. `localStorage` resta sorgente legacy e preferenze; media e queue
    non devono crescere lì. Valutare IndexedDB prima di introdurre SQLite nativo.
@@ -212,7 +223,7 @@ perdere quiz/trucchi/badge già salvati. Checklist guide e preferenze dispositiv
 
 | Fase | Dipendenze e risultato verificabile | Rischi principali | Device/credenziali |
 |---|---|---|---|
-| 1 · Supabase/Auth | Schema, migrations, RLS/test, repository boundary, login/reset, import locale dry-run e rollback | perdita dati, policy ricorsive, doppio import | Supabase dev; nessun device; service role solo CI/server |
+| 1 · Supabase/Auth — **implementata** | Schema, migration, RLS/test, repository boundary iniziale, login/reset e import locale idempotente | copertura CRUD cloud ancora parziale, assenza outbox | Supabase locale/remoto; nessun device; service role solo test server |
 | 2 · Family/Realtime | Inviti, ruoli/permessi, pet membership, outbox, sync e revoca immediata | conflitti, eventi duplicati, caregiver legacy | due account/browser; SMTP production in seguito |
 | 3 · Reminder/Push | Motore server, dedupe, token device, deep link e completamento farmaco atomico | push doppi/ritardati, timezone, token stale | Capacitor; device iOS/Android; Apple Developer/APNs e Firebase/FCM |
 | 4 · Manual Walk | start/stop persistente, foreground GPS, durata/distanza/route e recupero crash | batteria, permessi negati, route incompleta | device fisici; Xcode signing iOS; Android Studio |
@@ -245,11 +256,11 @@ con rollback documentato. Non iniziare la fase successiva finché i criteri dell
 - **Offline:** ogni azione mostra esito locale immediato; la sincronizzazione non sovrascrive dati
   più recenti in silenzio. Conflitti sanitari richiedono conferma, non last-write-wins cieco.
 
-## 10. Gate prima della Phase 1
+## 10. Gate prima della Phase 2
 
-1. Approvare questa decisione architetturale e il confine repository/outbox.
+1. Mantenere verdi migration, test RLS e acceptance cloud prima di estendere i repository.
 2. Definire matrice permessi owner/family/caregiver per Care, Diario, documenti e condivisione.
-3. Decidere provider login iniziale e regione Supabase; nessuna chiave prima dell’approvazione.
+3. Progettare outbox, retry, conflitti e bootstrap network-first senza perdere la cache esistente.
 4. Definire bundle ID iOS e application ID Android prima della Phase 3.
 5. Accettare che Smart Walk Detection abbia un gate go/no-go su device e non sia promessa finché
    background location/activity recognition non supera test reali su entrambe le piattaforme.
