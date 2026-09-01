@@ -2,6 +2,7 @@ import { FilePlus2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Modal } from '../components/Modal'
 import { todayKey } from '../lib/date'
+import { isMedicationTime } from '../lib/deadlines'
 import { prepareLocalFile } from '../lib/images'
 import { useAppState } from '../state/AppState'
 import type {
@@ -56,6 +57,9 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
   const [pauseEndMonth, setPauseEndMonth] = useState(String(prevention?.pauseEndMonth ?? 2))
   const [documents, setDocuments] = useState<PetDocument[]>(record?.documents ?? [])
   const [fileError, setFileError] = useState('')
+  const medicationTimes = times.split(',').map((value) => value.trim()).filter(Boolean)
+  const invalidMedicationTimes = type === 'medication' && medicationTimes.some((value) => !isMedicationTime(value))
+  const invalidMedicationDates = type === 'medication' && (!date || Boolean(nextDate && nextDate < date))
 
   const addFiles = async (files: FileList | null) => {
     if (!files) return
@@ -97,7 +101,7 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
       record ? actions.updatePrevention({ ...value, id: record.id }) : actions.addPrevention(value)
     }
     if (type === 'medication') {
-      const value = { name, dose: secondary, times: times.split(',').map((value) => value.trim()).filter(Boolean), startDate: date, endDate: nextDate, active, documents }
+      const value = { name, dose: secondary, times: medicationTimes, startDate: date, endDate: nextDate, active, documents }
       record ? actions.updateMedication({ ...value, id: record.id }) : actions.addMedication(value)
     }
     if (type === 'visit') {
@@ -121,7 +125,7 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
   return <Modal
     title={(record ? editTitles : addTitles)[type]}
     onClose={onClose}
-    footer={<div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim()}>Salva manualmente</button></div>}
+    footer={<div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim() || invalidMedicationTimes || invalidMedicationDates}>Salva manualmente</button></div>}
   >
     <p className="form-intro">Inserisci e conferma tu ogni dato. Cuccia non interpreta documenti e non salva informazioni sanitarie automaticamente.</p>
     <div className="form-stack health-record-form">
@@ -130,7 +134,7 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
       <label className="field"><span>{dateLabel}</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
       {type === 'vaccination' && <><div className="form-grid two-columns"><label className="field"><span>Lotto</span><input value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} /></label><label className="field"><span>Scadenza prodotto</span><input type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} /></label></div><label className="field"><span>Prossimo richiamo</span><input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label></>}
       {isPrevention && <><label className="field"><span>Cadenza indicata</span><select value={interval} onChange={(event) => setInterval(event.target.value)}><option value="30">Ogni 30 giorni</option><option value="60">Ogni 60 giorni</option><option value="90">Ogni 90 giorni</option><option value="180">Ogni 6 mesi</option><option value="365">Ogni anno</option></select><small>Usa solo la cadenza indicata dal veterinario o dal prodotto.</small></label><label className="check-field"><input type="checkbox" checked={seasonalPause} onChange={(event) => setSeasonalPause(event.target.checked)} /><span>Pausa stagionale</span></label>{seasonalPause && <div className="form-grid two-columns"><label className="field"><span>Da</span><select value={pauseStartMonth} onChange={(event) => setPauseStartMonth(event.target.value)}>{monthOptions.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></label><label className="field"><span>A</span><select value={pauseEndMonth} onChange={(event) => setPauseEndMonth(event.target.value)}>{monthOptions.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></label></div>}</>}
-      {type === 'medication' && <><label className="field"><span>Fine terapia</span><input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label><label className="field"><span>Orari, separati da virgola</span><input value={times} onChange={(event) => setTimes(event.target.value)} /></label><label className="check-field"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /><span>Terapia in corso</span></label></>}
+      {type === 'medication' && <><label className="field"><span>Fine terapia</span><input type="date" min={date} value={nextDate} onChange={(event) => setNextDate(event.target.value)} />{invalidMedicationDates && <small className="field-error">La fine terapia non può precedere l’inizio.</small>}</label><label className="field"><span>Orari, separati da virgola</span><input value={times} onChange={(event) => setTimes(event.target.value)} aria-invalid={invalidMedicationTimes} />{invalidMedicationTimes && <small className="field-error">Usa orari nel formato 08:00, 20:00 oppure lascia il campo vuoto.</small>}</label><label className="check-field"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /><span>Terapia in corso</span></label></>}
       {type === 'grooming' && <label className="field"><span>Promemoria morbido <small>opzionale</small></span><select value={interval} onChange={(event) => setInterval(event.target.value)}><option value="0">Nessun promemoria</option><option value="2">Ogni ~2 settimane</option><option value="4">Ogni ~4 settimane</option><option value="6">Ogni ~6 settimane</option><option value="8">Ogni ~8 settimane</option></select></label>}
       <div className="record-documents"><strong>Documenti <small>opzionali</small></strong><label className="button-secondary"><FilePlus2 size={18} /> Allega foto o file<input type="file" multiple accept="image/*,.pdf" onChange={(event) => void addFiles(event.target.files)} /></label>{fileError && <p className="field-error">{fileError}</p>}{documents.map((document) => <span key={document.id}>{document.name}<button onClick={() => setDocuments((current) => current.filter((item) => item.id !== document.id))} aria-label={`Rimuovi ${document.name}`}><X size={15} /></button></span>)}</div>
     </div>

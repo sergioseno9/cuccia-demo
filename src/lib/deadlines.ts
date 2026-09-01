@@ -9,20 +9,42 @@ const getStatus = (dueDate: string): DeadlineStatus => {
   return 'ok'
 }
 
-const nextDose = (medication: MedicationRecord) => {
-  const now = new Date()
-  const validTimes = medication.times.filter(Boolean).sort()
-  for (const time of validTimes) {
-    const [hours, minutes] = time.split(':').map(Number)
-    const candidate = new Date()
-    candidate.setHours(hours, minutes, 0, 0)
-    if (candidate > now) return candidate.toISOString()
-  }
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const [hours, minutes] = (validTimes[0] ?? '09:00').split(':').map(Number)
-  tomorrow.setHours(hours, minutes, 0, 0)
-  return tomorrow.toISOString()
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/
+
+const localDateKey = (date: Date) => [
+  date.getFullYear(),
+  String(date.getMonth() + 1).padStart(2, '0'),
+  String(date.getDate()).padStart(2, '0'),
+].join('-')
+
+const validDateKey = (value: string) => {
+  if (!DATE_PATTERN.test(value)) return false
+  return localDateKey(new Date(`${value}T12:00:00`)) === value
+}
+
+const nextLocalDateKey = (value: string) => {
+  const date = new Date(`${value}T12:00:00`)
+  date.setDate(date.getDate() + 1)
+  return localDateKey(date)
+}
+
+export const isMedicationTime = (value: string) => TIME_PATTERN.test(value)
+
+export const nextMedicationDose = (medication: MedicationRecord, now = new Date()) => {
+  const validTimes = medication.times.filter(isMedicationTime).sort()
+  if (!validTimes.length || !validDateKey(medication.startDate)) return null
+  if (medication.endDate && !validDateKey(medication.endDate)) return null
+
+  const today = localDateKey(now)
+  const candidateDate = medication.startDate > today ? medication.startDate : today
+  const candidateTimes = candidateDate === today
+    ? validTimes.filter((time) => new Date(`${candidateDate}T${time}:00`) > now)
+    : validTimes
+  const dueDate = candidateTimes.length ? candidateDate : nextLocalDateKey(candidateDate)
+  const dueTime = candidateTimes[0] ?? validTimes[0]
+  if (medication.endDate && dueDate > medication.endDate) return null
+  return new Date(`${dueDate}T${dueTime}:00`).toISOString()
 }
 
 const monthIsPaused = (month: number, record: PreventionRecord) => {
@@ -69,19 +91,18 @@ export const buildDeadlines = (pet: PetData): Deadline[] => {
       }
     })
 
-  const medicationDeadlines = pet.health.medications
-    .filter((record) => record.active && (!record.endDate || record.endDate >= new Date().toISOString().slice(0, 10)))
-    .map((record) => {
-      const dueDate = nextDose(record)
-      return {
+  const medicationDeadlines = pet.health.medications.flatMap((record) => {
+    if (!record.active) return []
+    const dueDate = nextMedicationDose(record)
+    return dueDate ? [{
         id: `medication-${record.id}`,
         title: record.name,
         detail: `Prossima dose · ${record.dose}`,
         dueDate,
         status: getStatus(dueDate),
         source: 'medication' as const,
-      }
-    })
+      }] : []
+  })
 
   const visitDeadlines = pet.health.visits
     .filter((record) => record.date >= new Date().toISOString().slice(0, 10))
