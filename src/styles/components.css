@@ -45,11 +45,11 @@
 .compact-empty p { margin: 0; }
 .empty-inline { padding: 15px; border-radius: 13px; background: rgba(239, 227, 209, 0.45); color: var(--taupe); font-size: 10px; line-height: 1.5; }
 
-.modal-backdrop { position: fixed; z-index: 30; inset: 0; display: grid; align-items: end; justify-items: center; padding: 12px; background: rgba(43, 35, 32, 0.45); backdrop-filter: blur(4px); }
-.modal-sheet { width: min(100%, 530px); max-height: min(88vh, 760px); display: flex; flex-direction: column; overflow: hidden; padding: 20px; border-radius: 22px; background: var(--cream); box-shadow: 0 24px 70px rgba(43, 35, 32, 0.25); }
+.modal-backdrop { position: fixed; z-index: 30; inset: 0; display: grid; align-items: end; justify-items: center; padding: 12px; background: rgba(43, 35, 32, 0.45); backdrop-filter: blur(4px); overscroll-behavior: contain; touch-action: none; }
+.modal-sheet { width: min(100%, 530px); max-height: min(88vh, 760px); display: flex; flex-direction: column; overflow: hidden; padding: 20px; border-radius: 22px; background: var(--cream); box-shadow: 0 24px 70px rgba(43, 35, 32, 0.25); touch-action: auto; }
 .modal-heading { flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
 .modal-heading h2 { margin: 0; font-size: 27px; line-height: 1; }
-.modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 12px; }
+.modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 12px; -webkit-overflow-scrolling: touch; }
 .modal-footer { flex: 0 0 auto; padding-top: 14px; border-top: 1px solid rgba(239, 227, 209, .72); }
 .modal-footer .form-actions,
 .modal-footer .event-editor-actions,
