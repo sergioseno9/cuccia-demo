@@ -32,6 +32,7 @@ import './styles/path-screen.css'
 import './styles/pet-card.css'
 import './styles/profile-editor-page.css'
 import './styles/auth.css'
+import './styles/type-scale.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

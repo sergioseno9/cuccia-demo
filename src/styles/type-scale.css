@@ -1,0 +1,50 @@
+/* Final readability guardrails: imported after every feature stylesheet. */
+#root :where(
+  .app-shell,
+  .welcome-shell,
+  .onboarding-shell,
+  .modal-sheet,
+  .tutorial-card,
+  .app-error-shell
+) :where(p:not(.eyebrow), li, button, a, input, select, textarea, label) {
+  font-size: 16px;
+}
+
+#root :where(
+  .app-shell,
+  .welcome-shell,
+  .onboarding-shell,
+  .modal-sheet,
+  .tutorial-card,
+  .app-error-shell
+) :where(button, select, textarea, input:not([type='checkbox']):not([type='radio']):not([type='file'])) {
+  min-height: 44px;
+}
+
+#root .field > span,
+#root .empty-inline,
+#root .empty-state strong,
+#root .empty-state p,
+#root .toast,
+#root .quiz-entry-card em,
+#root .conditions-picker > strong,
+#root .feeding-summary strong {
+  font-size: 16px;
+}
+
+#root :where(
+  .app-shell,
+  .welcome-shell,
+  .onboarding-shell,
+  .modal-sheet,
+  .tutorial-card,
+  .app-error-shell
+) :where(p, li, label) {
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 420px) {
+  #root :where(.app-shell, .welcome-shell, .onboarding-shell, .modal-sheet) {
+    max-width: 100%;
+  }
+}
