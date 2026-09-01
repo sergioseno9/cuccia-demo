@@ -112,12 +112,10 @@ try {
   assert.equal(householdMembership.error, null)
   assert.equal(householdMembership.data.role, 'owner')
   assert.equal(householdMembership.data.status, 'active')
-
   const secondImport = await importMigrationPlan(plan, secondLogin.data.user, { client, saveLink: () => undefined })
   assert.equal(secondImport.link.batchId, firstImport.link.batchId)
   assert.deepEqual(secondImport.counts, plan.counts)
   assert.equal(secondImport.reusedBatch, true)
-
   const cloudMutationOptions = { client, user: secondLogin.data.user }
   const sourcePetId = plan.pets[0].pet.id
   const healthRecords = [
@@ -142,13 +140,11 @@ try {
   assert.equal((await client.from('weight_logs').select('id').eq('legacy_source_id', `weight-${suffix}`).single()).error, null)
   const weightProfile = await client.from('pets').select('profile_data').eq('legacy_source_id', sourcePetId).single()
   assert.equal((weightProfile.data?.profile_data as { weight: string }).weight, '12.4')
-
   const visitRecord = healthRecords[3][1]
   assert.equal(await saveCloudHealthRecord(sourcePetId, 'visits', { ...visitRecord, notes: 'Aggiornata' }, cloudMutationOptions), true)
   const updatedVisit = await client.from('health_events').select('details').eq('legacy_source_id', `visit:visit-${suffix}`).single()
   assert.equal(updatedVisit.error, null)
   assert.equal((updatedVisit.data.details as { notes: string }).notes, 'Aggiornata')
-
   const cloudDocumentId = `document-${suffix}`
   const profileWithDocument = {
     ...plan.pets[0].pet.profile,
@@ -164,7 +160,6 @@ try {
   assert.equal(await saveCloudProfile(sourcePetId, { ...profileWithDocument, documents: [] }, cloudMutationOptions), true)
   const deletedDocument = await client.from('documents').select('deleted_at').eq('id', insertedDocument.data.id).single()
   assert.ok(deletedDocument.data?.deleted_at)
-
   for (const [key, record] of healthRecords) {
     assert.equal(await deleteCloudHealthRecord(sourcePetId, key, record.id, cloudMutationOptions), true)
   }
@@ -173,7 +168,6 @@ try {
     .in('legacy_source_id', [`vaccination:vaccination-${suffix}`, `prevention:prevention-${suffix}`, `deworming:deworming-${suffix}`, `visit:visit-${suffix}`, `grooming:grooming-${suffix}`])
   assert.equal(deletedHealth.error, null)
   assert.equal(deletedHealth.data?.every((row) => Boolean(row.deleted_at)), true)
-
   const onboardingPetId = `onboarding-${suffix}`
   const onboardingProfile = {
     ...createEmptyProfile('cane', onboardingPetId),
