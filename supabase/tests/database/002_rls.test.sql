@@ -110,8 +110,8 @@ select throws_ok(
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
 select lives_ok(
-  $$update public.pet_members set status = 'revoked', revoked_at = now() where pet_id = '20000000-0000-0000-0000-000000000001' and user_id = '00000000-0000-0000-0000-000000000003'$$,
-  'Owner revokes a caregiver'
+  $$select public.revoke_household_member('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003')$$,
+  'Owner revokes a caregiver transactionally'
 );
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000003', true);

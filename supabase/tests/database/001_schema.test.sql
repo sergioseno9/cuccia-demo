@@ -14,12 +14,12 @@ select is(
         'activities', 'walks', 'health_events', 'medications', 'medication_logs',
         'reminders', 'weight_logs', 'documents', 'travel_plans', 'travel_items',
         'milestones', 'pet_share_links', 'push_tokens', 'household_invites',
-        'migration_batches', 'pet_content_progress'
+        'migration_batches', 'pet_content_progress', 'household_caregivers'
       ])
       and c.relrowsecurity
   ),
-  21,
-  'RLS is enabled on every Phase 1 public table'
+  22,
+  'RLS is enabled on every public app table'
 );
 
 select is(
