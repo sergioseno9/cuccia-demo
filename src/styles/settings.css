@@ -115,10 +115,12 @@
 }
 
 .settings-panel .document-add select {
-  min-height: 48px;
+  min-height: 52px;
+  padding: 12px 42px 12px 15px;
   border: 0;
   background: var(--canvas);
   font-size: 16px;
+  line-height: 1.4;
 }
 
 .settings-panel .document-list article {
