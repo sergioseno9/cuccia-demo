@@ -1,5 +1,6 @@
 import { Camera, Cat, Check, ChevronLeft, ChevronRight, Dog, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../auth/AuthContext'
 import { ConditionPreferences, PhasePicker } from '../components/ProfilePreferences'
 import { PetAvatar } from '../components/PetAvatar'
 import { caregiverColors } from '../data'
@@ -9,6 +10,7 @@ import { prepareLocalFile } from '../lib/images'
 import { createEmptyProfile, modulePresets, suggestLifePhase, withRequiredModules } from '../lib/profile'
 import { useAppState } from '../state/AppState'
 import type { AppData, Caregiver, HealthData, PetProfile, PetSpecies } from '../types'
+import { microchipStorageCopy } from './copy'
 
 const stepTitles = ['Specie', 'Nome e foto', 'Età e fase', 'Dettagli', 'Peso', 'Microchip', 'Veterinario', 'Famiglia', 'Condizioni']
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
@@ -30,6 +32,7 @@ const onboardingData = (profile: PetProfile, health: HealthData, caregivers: Car
 
 export function Onboarding({ onComplete }: { onComplete?: (data: AppData) => Promise<void> | void }) {
   const { completeOnboarding, loadDemo } = useAppState()
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [profile, setProfile] = useState<PetProfile>(() => createEmptyProfile('cane', createId()))
   const [caregivers, setCaregivers] = useState<Caregiver[]>([
@@ -127,7 +130,7 @@ export function Onboarding({ onComplete }: { onComplete?: (data: AppData) => Pro
 
       {step === 4 && <div className="onboarding-content"><p className="eyebrow">Peso</p><h1>Quanto pesa {profile.name}?</h1><label className="field"><span>Peso in kg <small>opzionale</small></span><input type="number" min="0" step="0.1" value={profile.weight} onChange={(event) => update('weight', event.target.value)} placeholder="Es. 7,4" /></label><p className="gentle-note">Puoi lasciarlo vuoto e aggiungerlo più avanti in Cura.</p></div>}
 
-      {step === 5 && <div className="onboarding-content"><p className="eyebrow">Identificazione</p><h1>Microchip</h1><label className="field"><span>Numero microchip <small>opzionale</small></span><input inputMode="numeric" value={profile.microchip} onChange={(event) => update('microchip', event.target.value)} /></label><p className="gentle-note">Viene salvato solo su questo dispositivo e compare nella Pet Card.</p></div>}
+      {step === 5 && <div className="onboarding-content"><p className="eyebrow">Identificazione</p><h1>Microchip</h1><label className="field"><span>Numero microchip <small>opzionale</small></span><input inputMode="numeric" value={profile.microchip} onChange={(event) => update('microchip', event.target.value)} /></label><p className="gentle-note">{microchipStorageCopy(Boolean(user))}</p></div>}
 
       {step === 6 && <div className="onboarding-content"><p className="eyebrow">Contatti utili</p><h1>Veterinario di riferimento</h1><label className="field"><span>Nome <small>opzionale</small></span><input value={profile.vetName} onChange={(event) => update('vetName', event.target.value)} /></label><label className="field"><span>Telefono <small>opzionale</small></span><input type="tel" value={profile.vetPhone} onChange={(event) => update('vetPhone', event.target.value)} /></label><label className="field"><span>Contatto emergenza <small>opzionale</small></span><textarea value={profile.emergencyContact} onChange={(event) => update('emergencyContact', event.target.value)} /></label></div>}
 
