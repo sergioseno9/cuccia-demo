@@ -3,16 +3,17 @@ import type { ReactNode } from 'react'
 
 interface ModalProps {
   children: ReactNode
+  className?: string
   footer?: ReactNode
   title: string
   onClose: () => void
 }
 
-export function Modal({ children, footer, title, onClose }: ModalProps) {
+export function Modal({ children, className = '', footer, title, onClose }: ModalProps) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
-        className="modal-sheet"
+        className={`modal-sheet ${className}`.trim()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

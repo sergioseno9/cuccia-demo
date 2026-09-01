@@ -3,6 +3,7 @@ import {
   Scissors, Shield, ShieldCheck, Stethoscope, Syringe, Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { DocumentManager } from './DocumentManager'
 import { Modal } from './Modal'
 import { formatDate, timeFormatter } from '../lib/date'
@@ -20,10 +21,10 @@ const sectionTitles: Record<CareSection, string> = {
   grooming: 'Igiene e abitudini', documents: 'Documenti', profile: 'Microchip e condizioni',
 }
 
-function SectionTitle({ icon: Icon, title, onAdd, tutorialId }: { icon: LucideIcon; title?: string; onAdd?: () => void; tutorialId?: string }) {
-  return <div className={`health-section-title ${title ? '' : 'actions-only'}`}>
-    {title && <div><span><Icon size={21} /></span><h2>{title}</h2></div>}
-    {onAdd && <button id={tutorialId} className="button-secondary care-add-button" onClick={onAdd}><Plus size={19} /> Aggiungi</button>}
+function SectionTitle({ icon: Icon, label, onAdd, tutorialId }: { icon: LucideIcon; label?: string; onAdd?: () => void; tutorialId?: string }) {
+  return <div className={`health-section-title care-section-heading ${label ? '' : 'actions-only'}`}>
+    {label && <div><Icon size={18} /><span className="care-section-label">{label}</span></div>}
+    {onAdd && <button type="button" id={tutorialId} className="care-add-button" onClick={onAdd}><Plus size={18} /> Aggiungi</button>}
   </div>
 }
 
@@ -32,8 +33,8 @@ function RecordActions({ label, onEdit, onDelete }: { label: string; onEdit: () 
     if (window.confirm(`Eliminare “${label}”? L’azione non si può annullare.`)) onDelete()
   }
   return <div className="care-record-actions">
-    <button type="button" onClick={onEdit}><Pencil size={17} /> Modifica</button>
-    <button type="button" className="danger-text" onClick={remove}><Trash2 size={17} /> Elimina</button>
+    <button type="button" onClick={onEdit}><Pencil size={18} /> Modifica</button>
+    <button type="button" className="danger-text" onClick={remove}><Trash2 size={18} /> Elimina</button>
   </div>
 }
 
@@ -42,24 +43,40 @@ function RecordDocuments({ documents }: { documents: PetDocument[] }) {
   return <div className="care-document-links">{documents.map((document) => <a key={document.id} href={document.dataUrl} target="_blank" rel="noreferrer"><FileText size={15} />{document.name}<ExternalLink size={14} /></a>)}</div>
 }
 
-function PreventionSection({ explanation, records, title, onAdd, onEdit, onDelete }: {
+function CareRecordCard({ icon: Icon, tone, title, details, metaLabel, metaValue, children, actions }: {
+  icon: LucideIcon
+  tone: 'sage' | 'clay' | 'blue' | 'honey' | 'ink'
+  title: string
+  details?: ReactNode
+  metaLabel: string
+  metaValue: string
+  children?: ReactNode
+  actions: ReactNode
+}) {
+  return <article className="care-record-card">
+    <div className="care-record-summary">
+      <span className={`care-record-marker is-${tone}`}><Icon size={18} /></span>
+      <div className="care-record-copy"><h3>{title}</h3></div>
+      <div className="care-record-meta"><span>{metaLabel}</span><strong>{metaValue}</strong></div>
+    </div>
+    {details && <div className="care-record-details care-record-details-wide">{details}</div>}
+    {children}
+    {actions}
+  </article>
+}
+
+function PreventionSection({ explanation, records, label, onAdd, onEdit, onDelete }: {
   explanation: string
   records: PreventionRecord[]
-  title?: string
+  label: string
   onAdd: () => void
   onEdit: (record: PreventionRecord) => void
   onDelete: (id: string) => void
 }) {
   return <section className="health-section prevention-section">
-    <SectionTitle icon={ShieldCheck} title={title} onAdd={onAdd} />
-    <p className="section-explainer">{explanation}</p>
-    {records.length ? <div className="prevention-grid">{records.map((record) => <article key={record.id}>
-      <span>{record.kind}</span><h3>{record.product}</h3><p>Ultima · {formatDate(record.lastDate)}</p>
-      <strong>Prossima · {formatDate(nextPreventionDate(record))}</strong>
-      {record.seasonalPause && <small>Pausa stagionale attiva</small>}
-      <RecordDocuments documents={record.documents} />
-      <RecordActions label={record.product} onEdit={() => onEdit(record)} onDelete={() => onDelete(record.id)} />
-    </article>)}</div> : <div className="empty-inline">Nessun dato inserito. Aggiungilo solo quando vuoi seguire questa voce.</div>}
+    <SectionTitle icon={ShieldCheck} label={label} onAdd={onAdd} />
+    <p className="care-section-note">{explanation}</p>
+    {records.length ? <div className="care-record-list">{records.map((record) => <CareRecordCard key={record.id} icon={ShieldCheck} tone="clay" title={record.product} metaLabel="Prossima" metaValue={formatDate(nextPreventionDate(record))} details={<><p>{record.kind} · ultima {formatDate(record.lastDate)}</p><p>Ogni {record.intervalDays} giorni{record.seasonalPause ? ' · pausa stagionale attiva' : ''}</p></>} actions={<RecordActions label={record.product} onEdit={() => onEdit(record)} onDelete={() => onDelete(record.id)} />}><RecordDocuments documents={record.documents} /></CareRecordCard>)}</div> : <div className="empty-inline">Nessun dato inserito. Aggiungilo solo quando vuoi seguire questa voce.</div>}
   </section>
 }
 
@@ -92,41 +109,33 @@ export function CareDetailDialog({ section, onAdd, onEdit, onClose, onEditProfil
   const deworming = activePet.health.preventions.filter((record) => /svermin/i.test(record.kind))
   const antiparasitics = activePet.health.preventions.filter((record) => !/svermin/i.test(record.kind))
 
-  return <Modal title={sectionTitles[section]} onClose={onClose}>
+  return <Modal className="care-detail-modal" title={sectionTitles[section]} onClose={onClose}>
     {section === 'vaccination' && <section className="health-section">
-      <SectionTitle icon={Syringe} title="Storico e richiami" onAdd={() => onAdd('vaccination')} tutorialId="tutorial-care-add" />
-      {activePet.health.vaccinations.length ? <div className="record-list">{activePet.health.vaccinations.map((record) => <article className="record-row" key={record.id}>
-        <div className="record-marker"><Check size={18} /></div><div><strong>{record.name}</strong><p>Somministrato {formatDate(record.administeredDate)}</p>
-          {record.lotNumber && <small>Lotto · {record.lotNumber}</small>}{record.expiryDate && <small>Scadenza prodotto · {formatDate(record.expiryDate)}</small>}{record.notes && <small>{record.notes}</small>}
-          <RecordDocuments documents={record.documents} /><RecordActions label={record.name} onEdit={() => onEdit('vaccination', record)} onDelete={() => state.deleteVaccination(record.id)} />
-        </div><span>Prossimo<br /><strong>{record.nextDate ? formatDate(record.nextDate) : 'da definire'}</strong></span>
-      </article>)}</div> : <div className="empty-inline">Nessuna vaccinazione inserita.</div>}
+      <SectionTitle icon={Syringe} label="Storico e richiami" onAdd={() => onAdd('vaccination')} tutorialId="tutorial-care-add" />
+      {activePet.health.vaccinations.length ? <div className="care-record-list">{activePet.health.vaccinations.map((record) => <CareRecordCard key={record.id} icon={Check} tone="sage" title={record.name} metaLabel="Prossimo" metaValue={record.nextDate ? formatDate(record.nextDate) : 'Da definire'} details={<><p>Somministrato {formatDate(record.administeredDate)}{record.lotNumber ? ` · Lotto ${record.lotNumber}` : ''}</p>{(record.expiryDate || record.notes) && <p>{record.expiryDate ? `Scadenza prodotto · ${formatDate(record.expiryDate)}` : ''}{record.expiryDate && record.notes ? ' · ' : ''}{record.notes}</p>}</>} actions={<RecordActions label={record.name} onEdit={() => onEdit('vaccination', record)} onDelete={() => state.deleteVaccination(record.id)} />}><RecordDocuments documents={record.documents} /></CareRecordCard>)}</div> : <div className="empty-inline">Nessuna vaccinazione inserita.</div>}
     </section>}
 
-    {section === 'prevention' && <PreventionSection title="Pulci e zecche" explanation="Prodotto, ultima somministrazione e cadenza restano quelli confermati da te." records={antiparasitics} onAdd={() => onAdd('prevention')} onEdit={(record) => onEdit('prevention', record)} onDelete={state.deletePrevention} />}
-    {section === 'deworming' && <PreventionSection explanation="Prodotto e cadenza restano quelli confermati da te." records={deworming} onAdd={() => onAdd('deworming')} onEdit={(record) => onEdit('deworming', record)} onDelete={state.deletePrevention} />}
+    {section === 'prevention' && <PreventionSection label="Pulci e zecche" explanation="Prodotto, ultima somministrazione e cadenza restano quelli confermati da te." records={antiparasitics} onAdd={() => onAdd('prevention')} onEdit={(record) => onEdit('prevention', record)} onDelete={state.deletePrevention} />}
+    {section === 'deworming' && <PreventionSection label="Sverminazione" explanation="Prodotto e cadenza restano quelli confermati da te." records={deworming} onAdd={() => onAdd('deworming')} onEdit={(record) => onEdit('deworming', record)} onDelete={state.deletePrevention} />}
 
-    {section === 'medication' && <section className="health-section medication-section"><SectionTitle icon={Pill} onAdd={() => onAdd('medication')} />
-      {activePet.health.medications.length ? <div className="therapy-list">{activePet.health.medications.map((record) => {
+    {section === 'medication' && <section className="health-section medication-section"><SectionTitle icon={Pill} label="Farmaci e terapie" onAdd={() => onAdd('medication')} />
+      {activePet.health.medications.length ? <div className="care-record-list">{activePet.health.medications.map((record) => {
         const doses = activePet.events.filter((event) => !event.deletedAt && event.type === 'medication' && event.medicationId === record.id).slice(0, 3)
-        return <article className="therapy-card" key={record.id}><div className="therapy-main"><div><span className="badge badge-sage">{record.active ? 'In corso' : 'Conclusa'}</span><h3>{record.name}</h3><p>{record.dose} · {record.times.join(' / ') || 'orario libero'}</p><RecordDocuments documents={record.documents} /></div></div>
-          <div className="dose-history"><strong>Ultime dosi registrate nel Diario</strong>{doses.length ? doses.map((dose) => { const author = caregivers.find((caregiver) => caregiver.id === dose.caregiverId); return <span key={dose.id}>{author?.name ?? 'Famiglia'} · {timeFormatter.format(new Date(dose.happenedAt))}</span> }) : <span>Ancora nessuna dose registrata.</span>}</div>
-          <RecordActions label={record.name} onEdit={() => onEdit('medication', record)} onDelete={() => state.deleteMedication(record.id)} />
-        </article>
+        return <CareRecordCard key={record.id} icon={Pill} tone="blue" title={record.name} metaLabel="Stato" metaValue={record.active ? 'In corso' : 'Conclusa'} details={<><p>{record.dose} · {record.times.join(' / ') || 'orario libero'}</p><p>Dal {formatDate(record.startDate)}{record.endDate ? ` al ${formatDate(record.endDate)}` : ''}</p></>} actions={<RecordActions label={record.name} onEdit={() => onEdit('medication', record)} onDelete={() => state.deleteMedication(record.id)} />}><RecordDocuments documents={record.documents} /><div className="dose-history"><strong>Ultime dosi registrate nel Diario</strong>{doses.length ? doses.map((dose) => { const author = caregivers.find((caregiver) => caregiver.id === dose.caregiverId); return <span key={dose.id}>{author?.name ?? 'Famiglia'} · {timeFormatter.format(new Date(dose.happenedAt))}</span> }) : <span>Ancora nessuna dose registrata.</span>}</div></CareRecordCard>
       })}</div> : <div className="empty-inline">Nessuna terapia inserita.</div>}
     </section>}
 
-    {section === 'visit' && <section className="health-section"><SectionTitle icon={Stethoscope} title="Appuntamenti e storico" onAdd={() => onAdd('visit')} />
-      {visits.length ? <div className="visit-list">{visits.map((record) => <article key={record.id}><span className="date-tile"><strong>{new Date(`${record.date}T12:00:00`).getDate()}</strong>{new Intl.DateTimeFormat('it-IT', { month: 'short' }).format(new Date(`${record.date}T12:00:00`))}</span><div><h3>{record.title}</h3><p>{record.notes || 'Nessuna nota'}</p><RecordDocuments documents={record.documents} /><RecordActions label={record.title} onEdit={() => onEdit('visit', record)} onDelete={() => state.deleteVisit(record.id)} /></div></article>)}</div> : <div className="empty-inline">Nessuna visita registrata.</div>}
+    {section === 'visit' && <section className="health-section"><SectionTitle icon={Stethoscope} label="Appuntamenti e storico" onAdd={() => onAdd('visit')} />
+      {visits.length ? <div className="care-record-list">{visits.map((record) => <CareRecordCard key={record.id} icon={Stethoscope} tone="honey" title={record.title} metaLabel="Data" metaValue={formatDate(record.date)} details={<p>{record.notes || 'Nessuna nota'}</p>} actions={<RecordActions label={record.title} onEdit={() => onEdit('visit', record)} onDelete={() => state.deleteVisit(record.id)} />}><RecordDocuments documents={record.documents} /></CareRecordCard>)}</div> : <div className="empty-inline">Nessuna visita registrata.</div>}
     </section>}
 
-    {section === 'weight' && <section className="health-section weight-section"><SectionTitle icon={Scale} title="Peso" onAdd={() => onAdd('weight')} />
+    {section === 'weight' && <section className="health-section weight-section"><SectionTitle icon={Scale} label="Peso" onAdd={() => onAdd('weight')} />
       <div className="weight-layout"><div className="weight-current"><span>Attuale</span><strong>{weights[0]?.value || '—'} <small>kg</small></strong><p>{weights[0] ? formatDate(weights[0].date) : 'Non inserito'}</p></div><WeightChart records={weights} /></div>
-      {weights.length ? <div className="weight-history">{weights.map((record) => <article key={record.id}><div><strong>{record.value} kg</strong><span>{formatDate(record.date)}</span><RecordDocuments documents={record.documents} /></div><RecordActions label={`${record.value} kg`} onEdit={() => onEdit('weight', record)} onDelete={() => state.deleteWeight(record.id)} /></article>)}</div> : <div className="empty-inline">Nessun peso inserito.</div>}
+      {weights.length ? <div className="care-record-list weight-history">{weights.map((record) => <CareRecordCard key={record.id} icon={Scale} tone="ink" title={`${record.value} kg`} metaLabel="Registrato" metaValue={formatDate(record.date)} actions={<RecordActions label={`${record.value} kg`} onEdit={() => onEdit('weight', record)} onDelete={() => state.deleteWeight(record.id)} />}><RecordDocuments documents={record.documents} /></CareRecordCard>)}</div> : <div className="empty-inline">Nessun peso inserito.</div>}
     </section>}
 
-    {section === 'grooming' && <section className="health-section grooming-section"><SectionTitle icon={Scissors} onAdd={() => onAdd('grooming')} />
-      {grooming.length ? <div className="grooming-list">{grooming.map((record) => <article className="grooming-card" key={record.id}><div><strong>{record.title}</strong><p>Ultima volta · {formatDate(record.lastDate)}</p>{record.intervalWeeks > 0 && <small>Di solito ogni ~{record.intervalWeeks} settimane. È un promemoria morbido.</small>}{record.notes && <small>{record.notes}</small>}<RecordDocuments documents={record.documents} /></div><RecordActions label={record.title} onEdit={() => onEdit('grooming', record)} onDelete={() => state.deleteGrooming(record.id)} /></article>)}</div> : <div className="empty-inline">Ancora nessuna abitudine inserita.</div>}
+    {section === 'grooming' && <section className="health-section grooming-section"><SectionTitle icon={Scissors} label="Igiene e abitudini" onAdd={() => onAdd('grooming')} />
+      {grooming.length ? <div className="care-record-list grooming-list">{grooming.map((record) => <CareRecordCard key={record.id} icon={Scissors} tone="sage" title={record.title} metaLabel="Ultima" metaValue={formatDate(record.lastDate)} details={<>{record.intervalWeeks > 0 && <p>Di solito ogni ~{record.intervalWeeks} settimane. È un promemoria morbido.</p>}{record.notes && <p>{record.notes}</p>}</>} actions={<RecordActions label={record.title} onEdit={() => onEdit('grooming', record)} onDelete={() => state.deleteGrooming(record.id)} />}><RecordDocuments documents={record.documents} /></CareRecordCard>)}</div> : <div className="empty-inline">Ancora nessuna abitudine inserita.</div>}
     </section>}
 
     {section === 'documents' && <DocumentManager hideTitle />}
