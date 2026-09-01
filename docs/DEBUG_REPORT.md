@@ -167,6 +167,8 @@ stato ispezionato staticamente, ma in questa sessione non è corretto dichiararl
 - **Correzione proposta:** passata tipografica visual-regression su tutte le schermate, distinguendo
   soltanto eyebrow/metadata realmente accessorie.
 - **Stato iniziale:** segnalato, non corretto; è una modifica visiva ampia, non un fix isolato.
+- **Stato attuale:** **corretto** in `8c48e52`; guardrail finale a 16 px/44 px, test statico e
+  verifica browser a 390 px su cinque tab e modale senza overflow.
 
 ### DBG-011 — I modali non gestiscono focus, Escape e focus return
 
@@ -178,6 +180,8 @@ stato ispezionato staticamente, ma in questa sessione non è corretto dichiararl
 - **Correzione proposta:** focus iniziale, trap, Escape e ripristino focus nel componente base,
   con test DOM reale.
 - **Stato iniziale:** segnalato, non corretto; richiede test browser/accessibilità dedicato.
+- **Stato attuale:** **corretto** in `7f1f8f3`; verificati Tab, Shift+Tab, Escape e ritorno del
+  focus al pulsante di apertura.
 
 ### DBG-012 — Calcoli data non completamente timezone-safe
 
@@ -227,6 +231,7 @@ stato ispezionato staticamente, ma in questa sessione non è corretto dichiararl
 - **Impatto:** informazione fuorviante sulla destinazione del dato.
 - **Correzione proposta:** copia condizionale locale/account dopo decisione prodotto/privacy.
 - **Stato iniziale:** segnalato, non corretto perché cambia una promessa all'utente.
+- **Stato attuale:** **corretto** in `d29f145`; copy derivata dalla presenza della sessione.
 
 ### DBG-016 — Bundle iniziale sopra la soglia Vite
 
@@ -252,6 +257,8 @@ stato ispezionato staticamente, ma in questa sessione non è corretto dichiararl
   superati.
 - **Correzione proposta:** riallineamento documentale approvato, senza cambiare prodotto.
 - **Stato iniziale:** segnalato, non corretto come richiesto dall'audit.
+- **Stato attuale:** **corretto** in `f8edc09`; aggiunto test anti-drift sui riferimenti rimossi e
+  sulle feature correnti.
 
 ### DBG-018 — Copertura test prevalentemente logica/statica, non browser end-to-end
 
@@ -315,23 +322,27 @@ di prodotto o un intervento visivo/architetturale non isolato.
 | `DBG-007` | **CORRETTO** | `ae646bf` | recupero dal salvataggio precedente quando stato corrente e backup automatico sono corrotti |
 | `DBG-008` | **CORRETTO** | `de70e63` | backup con versione futura non supportata rifiutato esplicitamente |
 | `DBG-009` | **CORRETTO** | `77b9d64` | lettore guide senza overflow orizzontale a 390 px |
+| `DBG-010` | **CORRETTO** | `8c48e52` | corpo ≥16 px, target ≥44 px e nessun overflow sulle cinque tab e un modale a 390 px |
+| `DBG-011` | **CORRETTO** | `7f1f8f3` | focus iniziale/trap, Escape e ritorno focus verificati da tastiera |
+| `DBG-015` | **CORRETTO** | `d29f145` | copy microchip distinta tra account cloud e dispositivo locale |
+| `DBG-017` | **CORRETTO** | `f8edc09` | documenti riallineati e test anti-drift |
 
 ### Problemi ancora aperti
 
 - **Alti:** `DBG-003`–`DBG-006`; richiedono Phase 2, affidabilità cloud o una modifica del modello.
-- **Medi:** `DBG-010`–`DBG-014`; richiedono passate dedicate di accessibilità, modali, date,
-  persistenza o reset cloud.
-- **Bassi:** `DBG-015`–`DBG-018`; copia prodotto, performance, documentazione ed E2E.
+- **Medi:** `DBG-012`–`DBG-014`; richiedono revisione date, cache entry o reset cloud.
+- **Bassi:** `DBG-016` e `DBG-018`; performance bundle ed E2E browser completo.
 
 ### Matrice finale
 
-- **PASS — unit/integration:** `npm test`, 50 test su 50.
+- **PASS — unit/integration:** `npm test`, 56 test su 56.
 - **PASS — build produzione:** `npm run build`; resta il warning noto `DBG-016` sul chunk iniziale
-  da 673,37 kB (194,00 kB gzip).
+  da 674,62 kB (194,44 kB gzip).
 - **PASS — sicurezza repository:** `npm run security`.
 - **PASS — dipendenze:** `npm audit`, 0 vulnerabilità note.
-- **PASS — verifica browser guest:** rotte principali e Scopri; lettore guida verificato a
-  viewport mobile senza overflow orizzontale.
+- **PASS — verifica browser guest:** Home, Diario, Cura, Scopri, Profilo e un modale a 390 px;
+  nessun corpo sotto 16 px, target sotto 44 px o overflow orizzontale. Focus trap/Escape/return
+  verificati da tastiera.
 - **BLOCCATO — DB locale/RLS:** `npm run test:db` non può partire perché Docker Desktop non è in
   esecuzione; non è un fallimento dei test SQL. La suite contiene attualmente 35 assert pgTAP.
 - **BLOCCATO — cloud acceptance:** `npm run test:cloud` richiede Docker e credenziali test server
