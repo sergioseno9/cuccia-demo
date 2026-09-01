@@ -33,7 +33,11 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
-  return <Modal title="Aggiungi un animale" onClose={onClose}>
+  return <Modal
+    title="Aggiungi un animale"
+    onClose={onClose}
+    footer={<div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim()}>Aggiungi</button></div>}
+  >
     <p className="form-intro">Crea una scheda separata. Potrai completare tutti i dati dal Profilo.</p>
     <div className="species-choice compact-choice">
       <button className={species === 'cane' ? 'is-selected' : ''} onClick={() => setSpecies('cane')}><Dog size={25} /><span>Cane</span></button>
@@ -44,7 +48,6 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
       <label className="field"><span>Data di nascita <small>opzionale</small></span><input type="date" value={birthDate} onChange={(event) => changeBirthDate(event.target.value)} /></label>
       <label className="field"><span>Fase di vita</span><select value={lifePhase} onChange={(event) => setLifePhase(event.target.value as LifePhase)}><option value="cucciolo">{lifePhaseLabel('cucciolo', species)}</option><option value="adulto">Adulto</option><option value="senior">Senior</option></select></label>
     </div>
-    <div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim()}>Aggiungi</button></div>
   </Modal>
 }
 

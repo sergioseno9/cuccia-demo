@@ -63,7 +63,11 @@ export function EventFormDialog({ type, event, onClose }: { type: CareEventType;
   const invalid = !date || !time || !caregiverId || (type === 'note' && !note.trim()) || (type === 'medication' && !medicationId)
 
   return (
-    <Modal title={`${event ? 'Modifica' : 'Registra'} ${actionLabels[type].toLowerCase()}`} onClose={onClose}>
+    <Modal
+      title={`${event ? 'Modifica' : 'Registra'} ${actionLabels[type].toLowerCase()}`}
+      onClose={onClose}
+      footer={<div className="event-editor-actions">{event && (confirmDelete ? <div><button className="button-secondary" onClick={() => setConfirmDelete(false)}>Annulla</button><button className="danger-button" onClick={remove}>Elimina davvero</button></div> : <button className="text-button danger-text" onClick={() => setConfirmDelete(true)}><Trash2 size={18} /> Elimina</button>)}<button className="button-primary" onClick={save} disabled={invalid}>Salva</button></div>}
+    >
       <div className="event-editor event-form-large">
         <label className="field"><span>Data</span><input type="date" max={todayKey()} value={date} onChange={(input) => setDate(input.target.value)} /></label>
         <div className="preset-group"><span><Clock3 size={18} /> Ora</span><div><button type="button" onClick={() => applyPreset(0)}>Adesso</button><button type="button" onClick={() => applyPreset(15)}>Poco fa</button><button type="button" onClick={() => document.getElementById('event-time')?.focus()}>Scegli</button></div></div>
@@ -74,7 +78,6 @@ export function EventFormDialog({ type, event, onClose }: { type: CareEventType;
         <label className="field"><span>Nota <small>{type === 'note' ? 'necessaria' : 'opzionale'}</small></span><textarea value={note} onChange={(input) => setNote(input.target.value)} placeholder="Aggiungi un dettaglio utile" /></label>
         {event?.editedAt && <p className="audit-note"><History size={16} /> Modificato alle {timeFormatter.format(new Date(event.editedAt))}{editor ? ` da ${editor.name}` : ''}</p>}
       </div>
-      <div className="event-editor-actions">{event && (confirmDelete ? <div><button className="button-secondary" onClick={() => setConfirmDelete(false)}>Annulla</button><button className="danger-button" onClick={remove}>Elimina davvero</button></div> : <button className="text-button danger-text" onClick={() => setConfirmDelete(true)}><Trash2 size={18} /> Elimina</button>)}<button className="button-primary" onClick={save} disabled={invalid}>Salva</button></div>
     </Modal>
   )
 }

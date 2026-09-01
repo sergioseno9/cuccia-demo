@@ -18,8 +18,6 @@
 }
 
 .pet-card-dialog {
-  max-height: calc(88vh - 88px);
-  overflow-y: auto;
   padding: 0 2px 4px;
 }
 

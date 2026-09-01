@@ -118,7 +118,11 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
   const isPrevention = type === 'prevention' || type === 'deworming'
   const dateLabel = type === 'visit' ? 'Data appuntamento' : isPrevention ? 'Ultima somministrazione' : type === 'weight' ? 'Data misurazione' : type === 'medication' ? 'Inizio terapia' : type === 'grooming' ? 'Ultima volta' : 'Data somministrazione'
 
-  return <Modal title={(record ? editTitles : addTitles)[type]} onClose={onClose}>
+  return <Modal
+    title={(record ? editTitles : addTitles)[type]}
+    onClose={onClose}
+    footer={<div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim()}>Salva manualmente</button></div>}
+  >
     <p className="form-intro">Inserisci e conferma tu ogni dato. Cuccia non interpreta documenti e non salva informazioni sanitarie automaticamente.</p>
     <div className="form-stack health-record-form">
       <label className="field"><span>{type === 'weight' ? 'Peso in kg' : isPrevention ? 'Prodotto' : type === 'visit' ? 'Motivo' : type === 'grooming' ? 'Cosa è stato fatto' : 'Nome'}</span><input type={type === 'weight' ? 'number' : 'text'} step={type === 'weight' ? '0.1' : undefined} value={name} onChange={(event) => setName(event.target.value)} autoFocus /></label>
@@ -130,6 +134,5 @@ export function HealthRecordDialog({ type, record, onClose }: { type: HealthReco
       {type === 'grooming' && <label className="field"><span>Promemoria morbido <small>opzionale</small></span><select value={interval} onChange={(event) => setInterval(event.target.value)}><option value="0">Nessun promemoria</option><option value="2">Ogni ~2 settimane</option><option value="4">Ogni ~4 settimane</option><option value="6">Ogni ~6 settimane</option><option value="8">Ogni ~8 settimane</option></select></label>}
       <div className="record-documents"><strong>Documenti <small>opzionali</small></strong><label className="button-secondary"><FilePlus2 size={18} /> Allega foto o file<input type="file" multiple accept="image/*,.pdf" onChange={(event) => void addFiles(event.target.files)} /></label>{fileError && <p className="field-error">{fileError}</p>}{documents.map((document) => <span key={document.id}>{document.name}<button onClick={() => setDocuments((current) => current.filter((item) => item.id !== document.id))} aria-label={`Rimuovi ${document.name}`}><X size={15} /></button></span>)}</div>
     </div>
-    <div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={submit} disabled={!name.trim()}>Salva manualmente</button></div>
   </Modal>
 }

@@ -3,11 +3,12 @@ import type { ReactNode } from 'react'
 
 interface ModalProps {
   children: ReactNode
+  footer?: ReactNode
   title: string
   onClose: () => void
 }
 
-export function Modal({ children, title, onClose }: ModalProps) {
+export function Modal({ children, footer, title, onClose }: ModalProps) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
@@ -23,7 +24,8 @@ export function Modal({ children, title, onClose }: ModalProps) {
             <X size={20} />
           </button>
         </div>
-        {children}
+        <div className="modal-body">{children}</div>
+        {footer && <footer className="modal-footer">{footer}</footer>}
       </section>
     </div>
   )

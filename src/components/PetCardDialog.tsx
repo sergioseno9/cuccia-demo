@@ -21,13 +21,13 @@ export function PetCardDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
-  return <Modal title={`Pet Card di ${activePet.profile.name}`} onClose={onClose}><div className="pet-card-dialog">
+  return <Modal
+    title={`Pet Card di ${activePet.profile.name}`}
+    onClose={onClose}
+    footer={<div className="pet-card-actions"><button className="button-primary print-trigger" onClick={() => window.print()}><Printer size={20} /> Stampa / salva PDF</button><button className="button-secondary" onClick={() => void handleShare()}><Share2 size={20} /> Invia / Condividi</button></div>}
+  ><div className="pet-card-dialog">
     <p className="form-intro">Pronta da condividere · funziona offline</p>
     <PetCard profile={activePet.profile} medications={activePet.health.medications} />
-    <div className="pet-card-actions">
-      <button className="button-primary print-trigger" onClick={() => window.print()}><Printer size={20} /> Stampa / salva PDF</button>
-      <button className="button-secondary" onClick={() => void handleShare()}><Share2 size={20} /> Invia / Condividi</button>
-    </div>
     {shareStatus && <p className="pet-card-share-status" role="status">{shareStatus}</p>}
   </div></Modal>
 }

@@ -47,7 +47,11 @@ export function ProfileEditor({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
-  return <Modal title={`Modifica ${draft.name}`} onClose={onClose}>
+  return <Modal
+    title={`Modifica ${draft.name}`}
+    onClose={onClose}
+    footer={<div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={save}>Salva modifiche</button></div>}
+  >
     <div className="profile-editor-scroll">
       <label className="photo-editor"><PetAvatar className="large-dog-avatar" name={draft.name} photo={draft.photo} species={draft.species} /><span className="button-secondary"><Camera size={16} /> Cambia foto</span><input type="file" accept="image/*" onChange={(event) => void handlePhoto(event.target.files?.[0])} />{photoError && <span className="field-error">{photoError}</span>}</label>
 
@@ -67,6 +71,5 @@ export function ProfileEditor({ onClose }: { onClose: () => void }) {
 
       <div className="editor-family"><h3>Famiglia</h3>{familyDraft.map((caregiver) => <div className="caregiver-edit-row" key={caregiver.id}><span className="avatar" style={{ background: caregiver.color }}>{caregiver.name[0]}</span><input value={caregiver.name} onChange={(event) => setFamilyDraft((current) => current.map((item) => item.id === caregiver.id ? { ...item, name: event.target.value } : item))} /><input value={caregiver.role} onChange={(event) => setFamilyDraft((current) => current.map((item) => item.id === caregiver.id ? { ...item, role: event.target.value } : item))} /><button className="icon-button" aria-label={`Rimuovi ${caregiver.name}`} onClick={() => setFamilyDraft((current) => current.filter((item) => item.id !== caregiver.id))}><Trash2 size={16} /></button></div>)}<div className="inline-add"><input value={caregiverName} onChange={(event) => setCaregiverName(event.target.value)} placeholder="Nuova persona" /><button className="icon-button filled" onClick={addCaregiver} aria-label="Aggiungi persona"><Plus size={18} /></button></div></div>
     </div>
-    <div className="form-actions"><button className="button-secondary" onClick={onClose}>Annulla</button><button className="button-primary" onClick={save}>Salva modifiche</button></div>
   </Modal>
 }
