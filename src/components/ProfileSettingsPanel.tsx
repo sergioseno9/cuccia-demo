@@ -7,7 +7,7 @@ import { DataResetCard } from './DataResetCard'
 import { DocumentManager } from './DocumentManager'
 import { OutingScheduleEditor } from './OutingScheduleEditor'
 
-export function ProfileSettingsPanel({ onEdit }: { onEdit: () => void }) {
+export function ProfileSettingsPanel({ focus, onEdit }: { focus?: string | null; onEdit: () => void }) {
   const { data, profile, removePet, restartTutorial } = useAppState()
   if (!profile) return null
   const visibleModules = trackedModuleIds(profile.species).filter((module) => profile.trackedModules.includes(module))
@@ -22,7 +22,7 @@ export function ProfileSettingsPanel({ onEdit }: { onEdit: () => void }) {
       <button className="button-secondary" onClick={onEdit}>Modifica preferenze</button>
     </section>
 
-    <OutingScheduleEditor />
+    <OutingScheduleEditor autoFocus={focus === 'outings'} />
     <DocumentManager />
     <BackupManager />
 

@@ -17,6 +17,31 @@ const hasNearbyWalk = (events: CareEvent[], scheduleAt: Date) => events.some((ev
   && Math.abs(new Date(event.happenedAt).getTime() - scheduleAt.getTime()) <= WALK_PROXIMITY_MINUTES * MINUTE
 ))
 
+export interface TodayOutingSchedule {
+  schedule: OutingSchedule
+  completed: boolean
+  isNext: boolean
+  isPast: boolean
+}
+
+export const buildTodayOutingSchedules = (
+  profile: PetProfile,
+  events: CareEvent[],
+  now = new Date(),
+): TodayOutingSchedule[] => {
+  if (profile.species !== 'cane') return []
+  const schedules = profile.outingSchedules
+    .map((schedule) => ({ schedule, at: scheduledDate(schedule.time, now) }))
+    .sort((first, second) => first.at.getTime() - second.at.getTime())
+  const nextId = schedules.find(({ at }) => at.getTime() >= now.getTime() && !hasNearbyWalk(events, at))?.schedule.id
+  return schedules.map(({ schedule, at }) => ({
+    schedule,
+    completed: hasNearbyWalk(events, at),
+    isNext: schedule.id === nextId,
+    isPast: at.getTime() < now.getTime(),
+  }))
+}
+
 export const findInAppOutingReminder = (
   profile: PetProfile,
   events: CareEvent[],

@@ -1,3 +1,40 @@
+.home-outings-card {
+  width: 100%;
+  min-height: 112px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.home-outings-main-icon { color: var(--clay); }
+.home-outings-copy { min-width: 0; }
+.home-outings-copy > strong { display: block; font-size: 18px; line-height: 1.25; }
+.home-outings-copy > p { margin: 7px 0 0; color: var(--taupe); font-size: 16px; line-height: 1.5; }
+.home-outing-times { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.home-outing-time {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 16px;
+}
+.home-outing-time b { font-size: 16px; }
+.home-outing-time.is-past { color: var(--taupe); }
+.home-outing-time.is-next { background: color-mix(in srgb, var(--clay) 11%, white); color: #9c422f; }
+.home-outing-time.is-completed { background: color-mix(in srgb, var(--sage) 13%, white); color: #53674b; }
+
 .outing-schedule-add { display: grid; gap: 8px; }
 .outing-schedule-add > label { color: var(--ink); font-size: 14px; font-weight: 700; }
 .outing-schedule-add > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }

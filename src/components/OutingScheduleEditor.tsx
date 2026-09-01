@@ -1,14 +1,22 @@
 import { Bell, BellOff, Clock3, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { addOutingSchedule, removeOutingSchedule, toggleOutingSchedule } from '../lib/outingSchedules'
 import { useAppState } from '../state/AppState'
 
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
-export function OutingScheduleEditor() {
+export function OutingScheduleEditor({ autoFocus = false }: { autoFocus?: boolean }) {
   const { profile, updateProfile } = useAppState()
   const [time, setTime] = useState('')
   const [message, setMessage] = useState('')
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!autoFocus) return
+    const animationFrame = window.requestAnimationFrame(() => sectionRef.current?.scrollIntoView({ block: 'start' }))
+    return () => window.cancelAnimationFrame(animationFrame)
+  }, [autoFocus])
+
   if (!profile || profile.species !== 'cane') return null
 
   const schedules = [...profile.outingSchedules].sort((first, second) => first.time.localeCompare(second.time))
@@ -37,7 +45,7 @@ export function OutingScheduleEditor() {
     outingSchedules: removeOutingSchedule(schedules, id),
   })
 
-  return <section className="settings-card outing-schedule-card">
+  return <section ref={sectionRef} id="profile-outing-schedules" className="settings-card outing-schedule-card">
     <div className="settings-card-heading">
       <span className="settings-icon tone-clay"><Clock3 size={22} /></span>
       <div><h2>Orari delle uscite</h2><p>Scegli gli orari abituali e attiva solo gli avvisi che vuoi.</p></div>

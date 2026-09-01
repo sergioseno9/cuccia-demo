@@ -2,6 +2,7 @@ import { ChevronRight, Share2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DeadlineList } from '../components/DeadlineList'
+import { HomeOutingSummary } from '../components/HomeOutingSummary'
 import { PetAvatar } from '../components/PetAvatar'
 import { PetCardDialog } from '../components/PetCardDialog'
 import { ageLabel } from '../lib/date'
@@ -31,6 +32,8 @@ export function HomeScreen() {
         </div>
         <DeadlineList compact deadlines={deadlines} limit={3} onSelect={(deadline) => navigate(`/cura?focus=${deadline.source}`)} />
       </section>
+
+      <HomeOutingSummary />
 
       <button className="home-pet-card-link" onClick={() => setPetCardOpen(true)}>
         <Share2 size={20} />

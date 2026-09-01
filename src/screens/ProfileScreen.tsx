@@ -1,5 +1,6 @@
 import { ChevronRight, Cloud, Edit3, Phone, Settings, UsersRound, Utensils } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PetAvatar } from '../components/PetAvatar'
 import { ProfileDetailDialog } from '../components/ProfileDetailDialog'
 import type { ProfileSection } from '../components/ProfileDetailDialog'
@@ -14,6 +15,15 @@ export function ProfileScreen() {
   const { guestMode, requestAccount } = useEntryMode()
   const [editing, setEditing] = useState(false)
   const [section, setSection] = useState<ProfileSection | null>(null)
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const requestedSection = searchParams.get('section')
+  const focus = searchParams.get('focus')
+  useEffect(() => {
+    if (requestedSection === 'feeding' || requestedSection === 'contacts' || requestedSection === 'family' || requestedSection === 'settings') {
+      setSection(requestedSection)
+    }
+  }, [requestedSection])
   if (!activePet || !profile) return null
   const menuItems = [
     { id: 'feeding' as const, label: 'Alimentazione', icon: Utensils, tone: 'clay' },
@@ -28,7 +38,7 @@ export function ProfileScreen() {
     {guestMode && <section className="guest-account-nudge"><Cloud size={22} /><div><strong>Salva e condividi</strong><p>Crea un account quando vuoi. Prima prepariamo un backup dei dati locali.</p></div><button className="text-button" onClick={requestAccount}>Crea account</button></section>}
     <section className="profile-minimal-section"><h2>Animali in famiglia</h2><div className="profile-pet-list">{data.pets.map((pet) => <button className={pet.id === activePet.id ? 'is-active' : ''} key={pet.id} onClick={() => selectPet(pet.id)}><PetAvatar name={pet.profile.name} photo={pet.profile.photo} species={pet.profile.species} /><strong>{pet.profile.name}</strong><span>{pet.profile.species} · {lifePhaseLabel(pet.profile.lifePhase, pet.profile.species)}</span></button>)}</div></section>
     <section className="profile-minimal-section"><h2>Gestisci</h2><div className="profile-menu">{menuItems.map(({ icon: Icon, ...item }) => <button key={item.id} onClick={() => setSection(item.id)}><Icon className={`tone-${item.tone}`} size={23} /><strong>{item.label}</strong><ChevronRight size={21} /></button>)}</div></section>
-    {section && <ProfileDetailDialog section={section} onClose={() => setSection(null)} onEdit={() => { setSection(null); setEditing(true) }} />}
+    {section && <ProfileDetailDialog section={section} focus={focus} onClose={() => { setSection(null); navigate('/profilo', { replace: true }) }} onEdit={() => { setSection(null); navigate('/profilo', { replace: true }); setEditing(true) }} />}
     {editing && <ProfileEditor onClose={() => setEditing(false)} />}
   </div>
 }

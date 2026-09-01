@@ -1,38 +1,8 @@
 import { ArrowRight, Check, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { buildTutorialSteps } from '../lib/tutorialSteps'
 import { useAppState } from '../state/AppState'
-
-const steps = [
-  {
-    path: '/',
-    target: 'tutorial-home',
-    eyebrow: '1 di 4 · Home',
-    title: 'Le date importanti, subito',
-    body: 'Qui trovi le scadenze vicine e la Pet Card, senza altre distrazioni.',
-  },
-  {
-    path: '/diario',
-    target: 'tutorial-register',
-    eyebrow: '2 di 4 · Diario',
-    title: 'Registrare è sempre facoltativo',
-    body: 'Quando serve, questo pulsante apre un modulo chiaro con autore, data e ora.',
-  },
-  {
-    path: '/cura?focus=vaccination',
-    target: 'tutorial-care-add',
-    eyebrow: '3 di 4 · Cura',
-    title: 'Il libretto lo compili tu',
-    body: 'Vaccini, visite e terapie entrano solo dopo una tua conferma.',
-  },
-  {
-    path: '/scopri',
-    target: 'tutorial-discover',
-    eyebrow: '4 di 4 · Scopri',
-    title: 'Idee gentili, senza pressioni',
-    body: 'Guide e piccoli giochi restano separati dai dati sanitari.',
-  },
-] as const
 
 interface TargetBox {
   top: number
@@ -42,14 +12,23 @@ interface TargetBox {
 }
 
 export function TutorialCoach() {
-  const { data, completeTutorial } = useAppState()
+  const { activePet, data, completeTutorial } = useAppState()
   const [stepIndex, setStepIndex] = useState(0)
   const [targetBox, setTargetBox] = useState<TargetBox | null>(null)
   const [cardAtTop, setCardAtTop] = useState(false)
   const layerRef = useRef<HTMLDivElement>(null)
   const scrimRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
-  const step = steps[stepIndex]
+  const steps = useMemo(() => buildTutorialSteps(
+    activePet?.profile.name ?? 'il tuo pet',
+    activePet?.profile.species ?? 'gatto',
+  ), [activePet?.profile.name, activePet?.profile.species])
+  const safeStepIndex = Math.min(stepIndex, steps.length - 1)
+  const step = steps[safeStepIndex]
+
+  useEffect(() => {
+    if ((data.tutorialDone || stepIndex >= steps.length) && stepIndex !== 0) setStepIndex(0)
+  }, [data.tutorialDone, stepIndex, steps.length])
 
   useEffect(() => {
     if (data.tutorialDone) return
@@ -152,7 +131,7 @@ export function TutorialCoach() {
   }
 
   const next = () => {
-    if (stepIndex === steps.length - 1) finishTutorial()
+    if (safeStepIndex === steps.length - 1) finishTutorial()
     else {
       setTargetBox(null)
       setStepIndex((current) => current + 1)
@@ -169,8 +148,8 @@ export function TutorialCoach() {
         <h2 id="tutorial-title">{step.title}</h2>
         <p>{step.body}</p>
         <div className="tutorial-actions">
-          <div className="tutorial-dots" aria-label={`Passaggio ${stepIndex + 1} di ${steps.length}`}>{steps.map((item, index) => <span className={index === stepIndex ? 'is-active' : ''} key={item.target} />)}</div>
-          <button className="button-primary" onClick={next}>{stepIndex === steps.length - 1 ? <><Check size={19} /> Inizia</> : <>Avanti <ArrowRight size={19} /></>}</button>
+          <div className="tutorial-dots" aria-label={`Passaggio ${safeStepIndex + 1} di ${steps.length}`}>{steps.map((item, index) => <span className={index === safeStepIndex ? 'is-active' : ''} key={item.target} />)}</div>
+          <button className="button-primary" onClick={next}>{safeStepIndex === steps.length - 1 ? <><Check size={19} /> Inizia</> : <>Avanti <ArrowRight size={19} /></>}</button>
         </div>
       </section>
     </div>

@@ -16,7 +16,7 @@ const titles: Record<ProfileSection, string> = {
 const sexLabel = { male: 'Maschio', female: 'Femmina', unknown: 'Non indicato' }
 const sizeLabel = { small: 'Piccola', medium: 'Media', large: 'Grande' }
 
-export function ProfileDetailDialog({ section, onClose, onEdit }: { section: ProfileSection; onClose: () => void; onEdit: () => void }) {
+export function ProfileDetailDialog({ section, focus, onClose, onEdit }: { section: ProfileSection; focus?: string | null; onClose: () => void; onEdit: () => void }) {
   const { activePet, caregivers, profile } = useAppState()
   if (!activePet || !profile) return null
 
@@ -27,6 +27,6 @@ export function ProfileDetailDialog({ section, onClose, onEdit }: { section: Pro
 
     {section === 'family' && <section className="profile-section"><div className="section-title-row"><div><p className="eyebrow">La squadra</p><h2>Famiglia</h2></div><UsersRound size={21} /></div><div className="family-grid">{caregivers.map((caregiver) => <article key={caregiver.id}><span className="avatar" style={{ background: caregiver.color }}>{caregiver.name[0]}</span><strong>{caregiver.name}</strong><p>{caregiver.role}</p></article>)}</div><button className="button-secondary" onClick={onEdit}>Modifica famiglia</button></section>}
 
-    {section === 'settings' && <ProfileSettingsPanel onEdit={onEdit} />}
+    {section === 'settings' && <ProfileSettingsPanel focus={focus} onEdit={onEdit} />}
   </div></Modal>
 }

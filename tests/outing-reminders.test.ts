@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDemoData } from '../src/lib/demo.ts'
 import { migrateAppData } from '../src/lib/migrate.ts'
-import { findInAppOutingReminder } from '../src/lib/outingReminders.ts'
+import { buildTodayOutingSchedules, findInAppOutingReminder } from '../src/lib/outingReminders.ts'
 import { addOutingSchedule, removeOutingSchedule, toggleOutingSchedule } from '../src/lib/outingSchedules.ts'
 import { createEmptyProfile } from '../src/lib/profile.ts'
 import type { CareEvent } from '../src/types.ts'
@@ -34,6 +34,27 @@ test('un’uscita registrata vicino all’orario sopprime il promemoria', () => 
     happenedAt: '2026-09-01T08:50:00+02:00',
   }]
   assert.equal(findInAppOutingReminder(profile, events, now), null)
+  assert.deepEqual(buildTodayOutingSchedules(profile, events, now).map((item) => ({
+    id: item.schedule.id,
+    completed: item.completed,
+    isNext: item.isNext,
+  })), [{ id: 'early', completed: true, isNext: false }])
+})
+
+test('il riepilogo Home evidenzia il prossimo orario e resta nascosto per il gatto', () => {
+  const profile = {
+    ...createEmptyProfile('cane', 'milo'),
+    outingSchedules: [
+      { id: 'early', time: '08:45', reminderEnabled: true },
+      { id: 'lunch', time: '12:00', reminderEnabled: false },
+      { id: 'evening', time: '17:00', reminderEnabled: true },
+    ],
+  }
+  const summary = buildTodayOutingSchedules(profile, [], now)
+  assert.deepEqual(summary.map((item) => [item.schedule.id, item.isNext, item.isPast]), [
+    ['early', false, true], ['lunch', true, false], ['evening', false, false],
+  ])
+  assert.deepEqual(buildTodayOutingSchedules({ ...profile, species: 'gatto' }, [], now), [])
 })
 
 test('migrazione conserva orari validi per pet e rimuove duplicati o valori errati', () => {
