@@ -9,6 +9,7 @@ import { calculateQuizResult, resolveQuizArchetype } from '../src/lib/quiz.ts'
 import { buildReminderCandidates } from '../src/lib/reminders.ts'
 import {
   BACKUP_STORAGE_KEY,
+  PREVIOUS_STORAGE_KEY,
   STORAGE_KEY,
   loadAppData,
   persistAppData,
@@ -135,6 +136,23 @@ test('ogni scrittura conserva un backup locale recuperabile', () => {
   assert.deepEqual(loadAppData(storage), data)
   storage.removeItem(STORAGE_KEY)
   assert.deepEqual(loadAppData(storage), data)
+})
+
+test('recupera la versione precedente se corrente e backup sono corrotti', () => {
+  const storage = new MemoryStorage()
+  const first = createDemoData()
+  const second = {
+    ...first,
+    pets: first.pets.map((pet, index) => index === 0
+      ? { ...pet, profile: { ...pet.profile, name: 'Nome aggiornato' } }
+      : pet),
+  }
+  persistAppData(first, storage)
+  persistAppData(second, storage)
+  assert.ok(storage.getItem(PREVIOUS_STORAGE_KEY))
+  storage.setItem(STORAGE_KEY, '{corrente non valida')
+  storage.setItem(BACKUP_STORAGE_KEY, '{backup non valido')
+  assert.deepEqual(loadAppData(storage), first)
 })
 
 test('i promemoria hanno identità stabile e specie del pet', () => {

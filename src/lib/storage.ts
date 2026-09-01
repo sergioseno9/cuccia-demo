@@ -35,6 +35,10 @@ export const loadAppData = (storage: StorageLike = localStorage): AppData => {
     if (backup) return parseBackupJson(backup)
   } catch {}
   try {
+    const previous = parsePrimary(storage.getItem(PREVIOUS_STORAGE_KEY))
+    if (previous) return previous
+  } catch {}
+  try {
     const legacy = parsePrimary(storage.getItem(LEGACY_STORAGE_KEY))
     return legacy ?? createEmptyAppData()
   } catch {
