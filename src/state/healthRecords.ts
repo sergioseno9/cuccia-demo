@@ -1,15 +1,5 @@
 import type { HealthData, HealthRecordKey, PetData, PetProfile, WeightRecord } from '../types'
-
-export const latestWeight = (weights: WeightRecord[]) => [...weights]
-  .sort((first, second) => second.date.localeCompare(first.date))[0]
-
-export const currentWeight = (pet: PetData) => latestWeight(pet.health.weights)?.value
-
-const withWeightMirror = (pet: PetData, weights: WeightRecord[]): PetData => ({
-  ...pet,
-  profile: { ...pet.profile, weight: latestWeight(weights)?.value.toString() ?? '' },
-  health: { ...pet.health, weights },
-})
+import { currentWeight, withWeightMirror } from '../lib/weight.ts'
 
 export const upsertHealthRecord = <Key extends HealthRecordKey>(
   pet: PetData,

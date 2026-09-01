@@ -22,6 +22,7 @@ import type {
   PetSpecies,
   TrackedModule,
 } from '../types'
+import { normalizePetWeight } from './weight.ts'
 
 const outingTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/
 
@@ -152,6 +153,7 @@ export const migrateAppData = (value: unknown): AppData => {
       .map((pet, index) => migratePet(pet, index))
       .filter((pet): pet is PetData => pet !== null)
       .map(addLegacyGrooming)
+      .map(normalizePetWeight)
     const household = isRecord(source.household) ? source.household : {}
     const caregivers = migrateCaregivers(household.caregivers)
     const selectedPet = text(source.selectedPetId)
@@ -174,7 +176,7 @@ export const migrateAppData = (value: unknown): AppData => {
   const caregivers = migrateCaregivers(rawProfile.caregivers)
   const selectedCaregiver = text(source.selectedCaregiverId)
   const quizResult = migrateQuizResult(source.quizResult)
-  const pet = addLegacyGrooming({
+  const pet = normalizePetWeight(addLegacyGrooming({
     id: legacyProfile.id,
     profile: legacyProfile,
     events: migrateEvents(source.events),
@@ -182,7 +184,7 @@ export const migrateAppData = (value: unknown): AppData => {
     trickProgress: migrateTrickProgress(source.trickProgress),
     badges: migrateBadges(source.badges),
     ...(quizResult ? { quizResult } : {}),
-  })
+  }))
   return {
     schemaVersion: 2,
     household: { caregivers },

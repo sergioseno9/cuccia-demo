@@ -4,6 +4,7 @@ import { Modal } from '../components/Modal'
 import { ConditionPreferences, PhasePicker, TrackingPreferences } from '../components/ProfilePreferences'
 import { caregiverColors } from '../data'
 import { prepareLocalFile } from '../lib/images'
+import { currentWeight } from '../lib/weight'
 import { useAppState } from '../state/AppState'
 import type { Caregiver, PetProfile } from '../types'
 import { PetAvatar } from '../components/PetAvatar'
@@ -11,8 +12,10 @@ import { PetAvatar } from '../components/PetAvatar'
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
 export function ProfileEditor({ onClose }: { onClose: () => void }) {
-  const { caregivers, profile, updateCaregivers, updateProfile } = useAppState()
-  const [draft, setDraft] = useState<PetProfile | null>(profile)
+  const { activePet, caregivers, profile, updateCaregivers, updateProfile } = useAppState()
+  const [draft, setDraft] = useState<PetProfile | null>(() => profile
+    ? { ...profile, weight: activePet ? currentWeight(activePet)?.toString() ?? '' : '' }
+    : null)
   const [familyDraft, setFamilyDraft] = useState<Caregiver[]>(caregivers)
   const [caregiverName, setCaregiverName] = useState('')
   const [photoError, setPhotoError] = useState('')

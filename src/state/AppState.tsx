@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { trainingPaths } from '../data/paths'
 import { levelLabels, trickLevels, tricks } from '../data/tricks'
 import { parseBackupJson } from '../lib/backup'
+import { todayKey } from '../lib/date'
 import { saveCloudHealthRecord, deleteCloudHealthRecord } from '../cloud/cloudHealthMutations'
 import { saveCloudProfile } from '../cloud/cloudProfileMutations'
 import { createDemoData } from '../lib/demo'
@@ -13,7 +14,7 @@ import { localAppDataRepository } from '../repositories/appDataRepository'
 import type { AppDataRepository } from '../repositories/appDataRepository'
 import { joinAppData, splitAppData } from './appStateModel'
 import type { AppStateValue, EventInput } from './appStateTypes'
-import { removeHealthRecord, upsertHealthRecord } from './healthRecords'
+import { removeHealthRecord, updateProfileAndTodayWeight, upsertHealthRecord } from './healthRecords'
 import { resetLocalData } from './resetLocalData'
 import type {
   AppData,
@@ -86,28 +87,32 @@ export function AppStateProvider({ children, repository = localAppDataRepository
 
   const saveHealthRecord = <Key extends keyof HealthData>(key: Key, record: HealthData[Key][number]) => {
     if (!activePet) return
-    setData((current) => updateSelectedPet(current, (pet) => upsertHealthRecord(pet, key, record)))
+    const nextPet = upsertHealthRecord(activePet, key, record)
+    setData((current) => updateSelectedPet(current, () => nextPet))
     syncCloud(saveCloudHealthRecord(activePet.id, key, record))
+    if (key === 'weights') syncCloud(saveCloudProfile(activePet.id, nextPet.profile))
     setToast('Modifiche salvate')
   }
 
   const removeHealth = <Key extends keyof HealthData>(key: Key, id: string) => {
     if (!activePet) return
-    setData((current) => updateSelectedPet(current, (pet) => removeHealthRecord(pet, key, id)))
+    const nextPet = removeHealthRecord(activePet, key, id)
+    setData((current) => updateSelectedPet(current, () => nextPet))
     syncCloud(deleteCloudHealthRecord(activePet.id, key, id))
+    if (key === 'weights') syncCloud(saveCloudProfile(activePet.id, nextPet.profile))
     setToast('Voce eliminata')
   }
 
   const saveProfile = (nextProfile: PetProfile) => {
     if (!activePet) return
-    setData((current) => updateSelectedPet(current, (pet) => ({
-      ...pet,
-      profile: {
-        ...nextProfile,
-        trackedModules: withRequiredModules(nextProfile.trackedModules, nextProfile.conditions, nextProfile.species),
-      },
-    })))
-    syncCloud(saveCloudProfile(activePet.id, nextProfile))
+    const normalized = {
+      ...nextProfile,
+      trackedModules: withRequiredModules(nextProfile.trackedModules, nextProfile.conditions, nextProfile.species),
+    }
+    const result = updateProfileAndTodayWeight(activePet, normalized, todayKey(), createId)
+    setData((current) => updateSelectedPet(current, () => result.pet))
+    syncCloud(saveCloudProfile(activePet.id, result.pet.profile))
+    if (result.weight) syncCloud(saveCloudHealthRecord(activePet.id, 'weights', result.weight))
   }
 
   const value = useMemo<AppStateValue>(() => ({
@@ -129,7 +134,10 @@ export function AppStateProvider({ children, repository = localAppDataRepository
     addVisit: (record) => saveHealthRecord('visits', { ...record, id: createId() }),
     updateVisit: (record) => saveHealthRecord('visits', record),
     deleteVisit: (id) => removeHealth('visits', id),
-    addWeight: (record) => saveHealthRecord('weights', { ...record, id: createId() }),
+    addWeight: (record) => saveHealthRecord('weights', {
+      ...record,
+      id: activePet?.health.weights.find((item) => item.date === record.date)?.id ?? createId(),
+    }),
     updateWeight: (record) => saveHealthRecord('weights', record),
     deleteWeight: (id) => removeHealth('weights', id),
     addGrooming: (record) => saveHealthRecord('grooming', { ...record, id: createId() }),

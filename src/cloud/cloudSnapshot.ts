@@ -1,6 +1,7 @@
 import { caregiverColors } from '../data.ts'
 import { createEmptyHealth, migrateAppData } from '../lib/migrate.ts'
 import { createEmptyProfile } from '../lib/profile.ts'
+import { profileWithWeight } from '../lib/weight.ts'
 import type {
   AchievementBadge,
   AppData,
@@ -174,11 +175,12 @@ export const mapCloudSnapshot = (
         editedAt: nullableText(activity.edited_at),
         deletedAt: nullableText(activity.deleted_at),
       }))
+    const health = healthForPet(cloudPetId, healthEvents, medications, weights, documents, rows.assetUrls)
     return {
       id,
-      profile,
+      profile: profileWithWeight(profile, health.weights),
       events,
-      health: healthForPet(cloudPetId, healthEvents, medications, weights, documents, rows.assetUrls),
+      health,
       ...contentForPet(cloudPetId, content),
     }
   })

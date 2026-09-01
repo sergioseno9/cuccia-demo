@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDemoData } from '../src/lib/demo.ts'
-import { removeHealthRecord, upsertHealthRecord } from '../src/state/healthRecords.ts'
+import { removeHealthRecord, updateProfileAndTodayWeight, upsertHealthRecord } from '../src/state/healthRecords.ts'
 
 test('update e delete conservano le altre voci salute', () => {
   const pet = createDemoData().pets[0]
@@ -29,4 +29,18 @@ test('eliminare il peso attuale aggiorna il mirror compatibile del profilo', () 
   const sorted = [...pet.health.weights].sort((first, second) => second.date.localeCompare(first.date))
   const removed = removeHealthRecord(pet, 'weights', sorted[0].id)
   assert.equal(removed.profile.weight, sorted[1].value.toString())
+})
+
+test('il peso modificato dal Profilo crea o aggiorna una sola voce odierna', () => {
+  const pet = createDemoData().pets[0]
+  const today = '2030-09-01'
+  const created = updateProfileAndTodayWeight(pet, { ...pet.profile, weight: '14.2' }, today, () => 'today-weight')
+  assert.equal(created.weight?.id, 'today-weight')
+  assert.equal(created.pet.profile.weight, '14.2')
+  assert.equal(created.pet.health.weights.filter((record) => record.date === today).length, 1)
+
+  const updated = updateProfileAndTodayWeight(created.pet, { ...created.pet.profile, weight: '14.5' }, today, () => 'unused')
+  assert.equal(updated.weight?.id, 'today-weight')
+  assert.equal(updated.pet.health.weights.filter((record) => record.date === today).length, 1)
+  assert.equal(updated.pet.health.weights.find((record) => record.date === today)?.value, 14.5)
 })

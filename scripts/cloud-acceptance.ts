@@ -132,6 +132,7 @@ try {
   for (const [key, record] of healthRecords) {
     assert.equal(await saveCloudHealthRecord(sourcePetId, key, record, cloudMutationOptions), true)
   }
+  assert.equal(await saveCloudProfile(sourcePetId, { ...plan.pets[0].pet.profile, photo: '', weight: '12.4' }, cloudMutationOptions), true)
   const insertedHealth = await client.from('health_events')
     .select('id', { count: 'exact', head: true })
     .in('legacy_source_id', [`vaccination:vaccination-${suffix}`, `prevention:prevention-${suffix}`, `deworming:deworming-${suffix}`, `visit:visit-${suffix}`, `grooming:grooming-${suffix}`])
@@ -139,6 +140,8 @@ try {
   assert.equal(insertedHealth.count, 5)
   assert.equal((await client.from('medications').select('id').eq('legacy_source_id', `medication-${suffix}`).single()).error, null)
   assert.equal((await client.from('weight_logs').select('id').eq('legacy_source_id', `weight-${suffix}`).single()).error, null)
+  const weightProfile = await client.from('pets').select('profile_data').eq('legacy_source_id', sourcePetId).single()
+  assert.equal((weightProfile.data?.profile_data as { weight: string }).weight, '12.4')
 
   const visitRecord = healthRecords[3][1]
   assert.equal(await saveCloudHealthRecord(sourcePetId, 'visits', { ...visitRecord, notes: 'Aggiornata' }, cloudMutationOptions), true)
