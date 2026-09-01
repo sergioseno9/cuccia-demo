@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { authErrorMessage } from '../src/auth/authMessages.ts'
 import { mapCloudSnapshot } from '../src/cloud/cloudSnapshot.ts'
 import { hasHandledLocalImport, markLocalImportHandled } from '../src/entry/entryCache.ts'
+import { guestEntryData } from '../src/entry/entryData.ts'
 import { decideEntryScreen } from '../src/entry/entryFlow.ts'
+import { createDemoData } from '../src/lib/demo.ts'
 
 const entry = (overrides: Partial<Parameters<typeof decideEntryScreen>[0]> = {}) => decideEntryScreen({
   authLoading: false,
@@ -77,6 +80,19 @@ test('la scelta sui dati locali resta separata per account', () => {
 test('logout e problemi cloud hanno destinazioni non ambigue', () => {
   assert.equal(entry({ hasSession: false, cloudState: 'ready' }), 'welcome')
   assert.equal(entry({ hasSession: true, cloudState: 'error' }), 'cloud-error')
+})
+
+test('senza una cache guest non espone i dati dell’account', () => {
+  const accountData = createDemoData()
+  const guestData = guestEntryData(null)
+  assert.ok(accountData.pets.length > 0)
+  assert.equal(guestData.pets.length, 0)
+})
+
+test('logout e ingresso guest usano sempre la cache guest o uno stato vuoto', () => {
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8')
+  assert.ok(appSource.match(/guestEntryData\(loadGuestCache\(\)\)/g)?.length === 2)
+  assert.doesNotMatch(appSource, /else\s+saveGuestCache\(data\)/)
 })
 
 test('gli errori auth più comuni sono chiari in italiano', () => {

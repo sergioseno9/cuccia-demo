@@ -13,6 +13,7 @@ import { PetSwitcher } from './components/PetSwitcher'
 import { TutorialCoach } from './components/TutorialCoach'
 import { CloudEntryErrorScreen, LocalDataImportScreen } from './entry/CloudEntryScreens'
 import { EntryContext } from './entry/EntryContext'
+import { guestEntryData } from './entry/entryData'
 import {
   loadAccountCache,
   loadActiveScope,
@@ -105,6 +106,14 @@ function App() {
   useEffect(() => {
     if (auth.loading) return
     if (!auth.user) {
+      const activeScope = loadActiveScope()
+      if (activeScope.startsWith('account:')) {
+        saveAccountCache(activeScope.slice('account:'.length), data)
+        const guestData = guestEntryData(loadGuestCache())
+        replaceData(guestData)
+        saveGuestCache(guestData)
+        saveActiveScope('guest')
+      }
       setCloudState('idle')
       setImportHandled(false)
       setLocalImportData(null)
@@ -185,9 +194,9 @@ function App() {
   const enterGuestMode = () => {
     const activeScope = loadActiveScope()
     if (activeScope.startsWith('account:')) saveAccountCache(activeScope.slice('account:'.length), data)
-    const cached = loadGuestCache()
-    if (cached) replaceData(cached)
-    else saveGuestCache(data)
+    const guestData = guestEntryData(loadGuestCache())
+    replaceData(guestData)
+    saveGuestCache(guestData)
     saveActiveScope('guest')
     setWelcomeMode(undefined)
     setGuestMode(true)
