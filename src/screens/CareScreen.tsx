@@ -8,10 +8,11 @@ import { buildInAppDeadlines } from '../lib/reminders'
 import { useAppState } from '../state/AppState'
 import { HealthRecordDialog } from './HealthRecordDialog'
 import type { HealthRecordType } from './HealthRecordDialog'
+import type { HealthRecord } from '../types'
 
 export function CareScreen() {
   const { activePet, profile } = useAppState()
-  const [dialog, setDialog] = useState<HealthRecordType | null>(null)
+  const [dialog, setDialog] = useState<{ type: HealthRecordType; record?: HealthRecord } | null>(null)
   const [section, setSection] = useState<CareSection | null>(null)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -46,7 +47,7 @@ export function CareScreen() {
     <div className="care-stat-grid"><article><span>Peso</span><strong>{(weights[0]?.value ?? profile.weight) || '—'} kg</strong></article><article><span>Prossima visita</span><strong>{nextVisit ? formatDate(nextVisit.dueDate) : '—'}</strong></article></div>
     <section className="care-index"><h2>Il libretto</h2><div className="care-index-card">{indexItems.map(({ icon: Icon, ...item }) => <button key={item.section} onClick={() => setSection(item.section)}><Icon className={`tone-${item.tone}`} size={23} /><strong>{item.label}</strong><span>{item.value}</span><ChevronRight size={20} /></button>)}</div></section>
     <section className="care-index care-extra-index"><h2>Altri dati</h2><div className="care-index-card">{extraItems.map(({ icon: Icon, ...item }) => <button key={item.section} onClick={() => setSection(item.section)}><Icon className={`tone-${item.tone}`} size={23} /><strong>{item.label}</strong><span>{item.value}</span><ChevronRight size={20} /></button>)}</div></section>
-    {section && <CareDetailDialog section={section} onClose={() => setSection(null)} onAdd={(type) => { setSection(null); setDialog(type) }} onEditProfile={() => navigate('/profilo')} />}
-    {dialog && <HealthRecordDialog type={dialog} onClose={() => setDialog(null)} />}
+    {section && <CareDetailDialog section={section} onClose={() => setSection(null)} onAdd={(type) => { setSection(null); setDialog({ type }) }} onEdit={(type, record) => { setSection(null); setDialog({ type, record }) }} onEditProfile={() => navigate('/profilo')} />}
+    {dialog && <HealthRecordDialog type={dialog.type} record={dialog.record} onClose={() => setDialog(null)} />}
   </div>
 }

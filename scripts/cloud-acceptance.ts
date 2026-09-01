@@ -3,6 +3,8 @@ import { execFileSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
 import { buildMigrationPlan } from '../src/cloud/migrationPlan.ts'
 import { importMigrationPlan } from '../src/cloud/migrationRepository.ts'
+import { deleteCloudHealthRecord, saveCloudHealthRecord } from '../src/cloud/cloudHealthMutations.ts'
+import { saveCloudProfile } from '../src/cloud/cloudProfileMutations.ts'
 import { createDemoData } from '../src/lib/demo.ts'
 import { createEmptyHealth } from '../src/lib/migrate.ts'
 import { createEmptyProfile } from '../src/lib/profile.ts'
@@ -115,6 +117,59 @@ try {
   assert.equal(secondImport.link.batchId, firstImport.link.batchId)
   assert.deepEqual(secondImport.counts, plan.counts)
   assert.equal(secondImport.reusedBatch, true)
+
+  const cloudMutationOptions = { client, user: secondLogin.data.user }
+  const sourcePetId = plan.pets[0].pet.id
+  const healthRecords = [
+    ['vaccinations', { id: `vaccination-${suffix}`, name: 'Richiamo cloud', administeredDate: '2026-08-01', nextDate: '2027-08-01', lotNumber: 'LOT-1', expiryDate: '2027-12-01', notes: '', documents: [] }],
+    ['preventions', { id: `prevention-${suffix}`, kind: 'Antiparassitari (pulci e zecche)', product: 'Prodotto cloud', lastDate: '2026-08-01', intervalDays: 30, seasonalPause: false, documents: [] }],
+    ['preventions', { id: `deworming-${suffix}`, kind: 'Sverminazione', product: 'Prodotto cloud', lastDate: '2026-08-01', intervalDays: 90, seasonalPause: false, documents: [] }],
+    ['visits', { id: `visit-${suffix}`, title: 'Visita cloud', date: '2026-09-15', notes: '', documents: [] }],
+    ['medications', { id: `medication-${suffix}`, name: 'Terapia cloud', dose: 'Dose manuale', times: ['08:00'], startDate: '2026-09-01', endDate: '', active: true, documents: [] }],
+    ['weights', { id: `weight-${suffix}`, value: 12.4, date: '2026-09-01', documents: [] }],
+    ['grooming', { id: `grooming-${suffix}`, title: 'Bagno cloud', lastDate: '2026-09-01', intervalWeeks: 4, notes: '', documents: [] }],
+  ] as const
+  for (const [key, record] of healthRecords) {
+    assert.equal(await saveCloudHealthRecord(sourcePetId, key, record, cloudMutationOptions), true)
+  }
+  const insertedHealth = await client.from('health_events')
+    .select('id', { count: 'exact', head: true })
+    .in('legacy_source_id', [`vaccination:vaccination-${suffix}`, `prevention:prevention-${suffix}`, `deworming:deworming-${suffix}`, `visit:visit-${suffix}`, `grooming:grooming-${suffix}`])
+  assert.equal(insertedHealth.error, null)
+  assert.equal(insertedHealth.count, 5)
+  assert.equal((await client.from('medications').select('id').eq('legacy_source_id', `medication-${suffix}`).single()).error, null)
+  assert.equal((await client.from('weight_logs').select('id').eq('legacy_source_id', `weight-${suffix}`).single()).error, null)
+
+  const visitRecord = healthRecords[3][1]
+  assert.equal(await saveCloudHealthRecord(sourcePetId, 'visits', { ...visitRecord, notes: 'Aggiornata' }, cloudMutationOptions), true)
+  const updatedVisit = await client.from('health_events').select('details').eq('legacy_source_id', `visit:visit-${suffix}`).single()
+  assert.equal(updatedVisit.error, null)
+  assert.equal((updatedVisit.data.details as { notes: string }).notes, 'Aggiornata')
+
+  const cloudDocumentId = `document-${suffix}`
+  const profileWithDocument = {
+    ...plan.pets[0].pet.profile,
+    photo: '',
+    documents: [{ id: cloudDocumentId, name: 'esame.txt', kind: 'esame' as const, dataUrl: 'data:text/plain;base64,SGVsbG8=', addedAt: new Date().toISOString() }],
+  }
+  assert.equal(await saveCloudProfile(sourcePetId, profileWithDocument, cloudMutationOptions), true)
+  const insertedDocument = await client.from('documents').select('id,file_name').eq('legacy_source_id', `pet:${cloudDocumentId}`).single()
+  assert.equal(insertedDocument.error, null)
+  assert.equal(await saveCloudProfile(sourcePetId, { ...profileWithDocument, documents: [{ ...profileWithDocument.documents[0], name: 'esame aggiornato.txt' }] }, cloudMutationOptions), true)
+  const updatedDocument = await client.from('documents').select('file_name').eq('id', insertedDocument.data.id).single()
+  assert.equal(updatedDocument.data?.file_name, 'esame aggiornato.txt')
+  assert.equal(await saveCloudProfile(sourcePetId, { ...profileWithDocument, documents: [] }, cloudMutationOptions), true)
+  const deletedDocument = await client.from('documents').select('deleted_at').eq('id', insertedDocument.data.id).single()
+  assert.ok(deletedDocument.data?.deleted_at)
+
+  for (const [key, record] of healthRecords) {
+    assert.equal(await deleteCloudHealthRecord(sourcePetId, key, record.id, cloudMutationOptions), true)
+  }
+  const deletedHealth = await client.from('health_events')
+    .select('deleted_at')
+    .in('legacy_source_id', [`vaccination:vaccination-${suffix}`, `prevention:prevention-${suffix}`, `deworming:deworming-${suffix}`, `visit:visit-${suffix}`, `grooming:grooming-${suffix}`])
+  assert.equal(deletedHealth.error, null)
+  assert.equal(deletedHealth.data?.every((row) => Boolean(row.deleted_at)), true)
 
   const onboardingPetId = `onboarding-${suffix}`
   const onboardingProfile = {

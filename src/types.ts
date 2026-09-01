@@ -172,6 +172,9 @@ export interface HealthData {
   grooming: GroomingRecord[]
 }
 
+export type HealthRecordKey = keyof HealthData
+export type HealthRecord = HealthData[HealthRecordKey][number]
+
 export type TrickStatus = 'da_imparare' | 'in_corso' | 'imparato'
 
 export interface TrickProgressRecord {

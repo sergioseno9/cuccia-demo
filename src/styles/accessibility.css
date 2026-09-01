@@ -117,6 +117,55 @@ body { font-size: 16px; line-height: 1.55; }
 .health-section-title > div { min-width: 0; flex: 1; }
 .health-section-title h2 { font-size: 25px; }
 .health-section-title > div > span { width: 42px; height: 42px; }
+.health-section-title.actions-only { justify-content: flex-end; }
+.care-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.care-record-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid rgba(107, 97, 84, .18);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+.care-record-actions .danger-text { color: #a23f2b; }
+.weight-history,
+.grooming-list { display: grid; gap: 12px; margin-top: 18px; }
+.weight-history article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+.weight-history article > div:first-child > strong,
+.weight-history article > div:first-child > span { display: block; font-size: 16px; }
+.weight-history article > div:first-child > span { margin-top: 4px; color: var(--taupe); }
+.weight-history .care-record-actions { margin-top: 0; }
+.grooming-card { background: #fff; box-shadow: var(--soft-shadow); }
+.document-edit-row {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+.document-edit-row > div { display: flex; justify-content: flex-end; gap: 8px; }
+.document-list article { grid-template-columns: 48px minmax(0, 1fr) repeat(3, 44px); }
 .care-add-button { min-width: 112px; }
 .record-row { min-height: 92px; grid-template-columns: 36px minmax(0, 1fr) auto; }
 .record-row strong,

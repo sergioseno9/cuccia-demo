@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { trainingPaths } from '../data/paths'
 import { levelLabels, trickLevels, tricks } from '../data/tricks'
 import { parseBackupJson } from '../lib/backup'
+import { saveCloudHealthRecord, deleteCloudHealthRecord } from '../cloud/cloudHealthMutations'
+import { saveCloudProfile } from '../cloud/cloudProfileMutations'
 import { createDemoData } from '../lib/demo'
 import { createEmptyHealth } from '../lib/migrate'
 import { withRequiredModules } from '../lib/profile'
@@ -10,68 +12,19 @@ import { StorageQuotaError } from '../lib/storage'
 import { localAppDataRepository } from '../repositories/appDataRepository'
 import type { AppDataRepository } from '../repositories/appDataRepository'
 import { joinAppData, splitAppData } from './appStateModel'
+import type { AppStateValue, EventInput } from './appStateTypes'
+import { removeHealthRecord, upsertHealthRecord } from './healthRecords'
 import { resetLocalData } from './resetLocalData'
 import type {
   AppData,
   CareEvent,
   CareEventType,
-  Caregiver,
-  GroomingRecord,
   HealthData,
-  MedicationRecord,
   PetData,
   PetProfile,
-  PreventionRecord,
-  QuizResultRecord,
-  TrickStatus,
-  VaccinationRecord,
-  VetVisitRecord,
-  WeightRecord,
 } from '../types'
 
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
-
-interface EventInput {
-  happenedAt?: string
-  caregiverId?: string
-  note?: string
-  durationMin?: number
-  medicationId?: string
-}
-
-type EventChanges = Pick<CareEvent, 'happenedAt' | 'caregiverId' | 'note' | 'durationMin' | 'medicationId'>
-
-interface AppStateValue {
-  data: AppData
-  activePet: PetData | null
-  profile: PetProfile | null
-  caregivers: Caregiver[]
-  toast: string
-  addEvent: (type: CareEventType, input?: EventInput) => void
-  addMedication: (record: Omit<MedicationRecord, 'id'>) => void
-  addPrevention: (record: Omit<PreventionRecord, 'id'>) => void
-  addVaccination: (record: Omit<VaccinationRecord, 'id'>) => void
-  addVisit: (record: Omit<VetVisitRecord, 'id'>) => void
-  addWeight: (record: Omit<WeightRecord, 'id'>) => void
-  addGrooming: (record: Omit<GroomingRecord, 'id'>) => void
-  addPet: (profile: PetProfile, health?: HealthData) => void
-  completeOnboarding: (profile: PetProfile, health: HealthData, caregivers: Caregiver[]) => void
-  deleteEvent: (id: string) => void
-  importBackup: (json: string) => void
-  replaceData: (data: AppData) => void
-  loadDemo: () => void
-  removePet: (id: string) => void
-  resetAll: () => void
-  selectCaregiver: (id: string) => void
-  selectPet: (id: string) => void
-  updateCaregivers: (caregivers: Caregiver[]) => void
-  updateEvent: (id: string, changes: EventChanges) => void
-  updateProfile: (profile: PetProfile) => void
-  completeTutorial: () => void
-  restartTutorial: () => void
-  saveQuizResult: (result: QuizResultRecord) => void
-  setTrickStatus: (id: string, title: string, status: TrickStatus) => void
-}
 
 const AppStateContext = createContext<AppStateValue | null>(null)
 
@@ -127,11 +80,34 @@ export function AppStateProvider({ children, repository = localAppDataRepository
     setToast('Fatto — salvato sul dispositivo')
   }
 
-  const addHealthRecord = <Key extends keyof HealthData>(key: Key, record: HealthData[Key][number]) => {
+  const syncCloud = (operation: Promise<unknown>) => {
+    void operation.catch(() => setToast('Salvato sul dispositivo. La sincronizzazione cloud non è riuscita: riprova tra poco.'))
+  }
+
+  const saveHealthRecord = <Key extends keyof HealthData>(key: Key, record: HealthData[Key][number]) => {
+    if (!activePet) return
+    setData((current) => updateSelectedPet(current, (pet) => upsertHealthRecord(pet, key, record)))
+    syncCloud(saveCloudHealthRecord(activePet.id, key, record))
+    setToast('Modifiche salvate')
+  }
+
+  const removeHealth = <Key extends keyof HealthData>(key: Key, id: string) => {
+    if (!activePet) return
+    setData((current) => updateSelectedPet(current, (pet) => removeHealthRecord(pet, key, id)))
+    syncCloud(deleteCloudHealthRecord(activePet.id, key, id))
+    setToast('Voce eliminata')
+  }
+
+  const saveProfile = (nextProfile: PetProfile) => {
+    if (!activePet) return
     setData((current) => updateSelectedPet(current, (pet) => ({
       ...pet,
-      health: { ...pet.health, [key]: [record, ...pet.health[key]] },
+      profile: {
+        ...nextProfile,
+        trackedModules: withRequiredModules(nextProfile.trackedModules, nextProfile.conditions, nextProfile.species),
+      },
     })))
+    syncCloud(saveCloudProfile(activePet.id, nextProfile))
   }
 
   const value = useMemo<AppStateValue>(() => ({
@@ -141,12 +117,27 @@ export function AppStateProvider({ children, repository = localAppDataRepository
     caregivers,
     toast,
     addEvent,
-    addMedication: (record) => addHealthRecord('medications', { ...record, id: createId() }),
-    addPrevention: (record) => addHealthRecord('preventions', { ...record, id: createId() }),
-    addVaccination: (record) => addHealthRecord('vaccinations', { ...record, id: createId() }),
-    addVisit: (record) => addHealthRecord('visits', { ...record, id: createId() }),
-    addWeight: (record) => addHealthRecord('weights', { ...record, id: createId() }),
-    addGrooming: (record) => addHealthRecord('grooming', { ...record, id: createId() }),
+    addMedication: (record) => saveHealthRecord('medications', { ...record, id: createId() }),
+    updateMedication: (record) => saveHealthRecord('medications', record),
+    deleteMedication: (id) => removeHealth('medications', id),
+    addPrevention: (record) => saveHealthRecord('preventions', { ...record, id: createId() }),
+    updatePrevention: (record) => saveHealthRecord('preventions', record),
+    deletePrevention: (id) => removeHealth('preventions', id),
+    addVaccination: (record) => saveHealthRecord('vaccinations', { ...record, id: createId() }),
+    updateVaccination: (record) => saveHealthRecord('vaccinations', record),
+    deleteVaccination: (id) => removeHealth('vaccinations', id),
+    addVisit: (record) => saveHealthRecord('visits', { ...record, id: createId() }),
+    updateVisit: (record) => saveHealthRecord('visits', record),
+    deleteVisit: (id) => removeHealth('visits', id),
+    addWeight: (record) => saveHealthRecord('weights', { ...record, id: createId() }),
+    updateWeight: (record) => saveHealthRecord('weights', record),
+    deleteWeight: (id) => removeHealth('weights', id),
+    addGrooming: (record) => saveHealthRecord('grooming', { ...record, id: createId() }),
+    updateGrooming: (record) => saveHealthRecord('grooming', record),
+    deleteGrooming: (id) => removeHealth('grooming', id),
+    addDocument: (document) => profile && saveProfile({ ...profile, documents: [document, ...profile.documents] }),
+    updateDocument: (document) => profile && saveProfile({ ...profile, documents: profile.documents.map((item) => item.id === document.id ? document : item) }),
+    deleteDocument: (id) => profile && saveProfile({ ...profile, documents: profile.documents.filter((item) => item.id !== id) }),
     addPet: (newProfile, health = createEmptyHealth()) => setData((current) => {
       const normalized = {
         ...newProfile,
@@ -217,13 +208,7 @@ export function AppStateProvider({ children, repository = localAppDataRepository
       })))
       setToast('Modifiche salvate')
     },
-    updateProfile: (nextProfile) => setData((current) => updateSelectedPet(current, (pet) => ({
-      ...pet,
-      profile: {
-        ...nextProfile,
-        trackedModules: withRequiredModules(nextProfile.trackedModules, nextProfile.conditions, nextProfile.species),
-      },
-    }))),
+    updateProfile: saveProfile,
     completeTutorial: () => setData((current) => ({ ...current, tutorialDone: true })),
     restartTutorial: () => setData((current) => ({ ...current, tutorialDone: false })),
     saveQuizResult: (result) => {

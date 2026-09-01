@@ -4,11 +4,14 @@ import { Modal } from '../components/Modal'
 import { todayKey } from '../lib/date'
 import { prepareLocalFile } from '../lib/images'
 import { useAppState } from '../state/AppState'
-import type { PetDocument } from '../types'
+import type {
+  GroomingRecord, HealthRecord, MedicationRecord, PetDocument, PreventionRecord,
+  VaccinationRecord, VetVisitRecord, WeightRecord,
+} from '../types'
 
 export type HealthRecordType = 'vaccination' | 'prevention' | 'deworming' | 'medication' | 'visit' | 'weight' | 'grooming'
 
-const titles: Record<HealthRecordType, string> = {
+const addTitles: Record<HealthRecordType, string> = {
   vaccination: 'Aggiungi vaccinazione',
   prevention: 'Aggiungi antiparassitario',
   deworming: 'Aggiungi sverminazione',
@@ -18,23 +21,40 @@ const titles: Record<HealthRecordType, string> = {
   grooming: 'Aggiungi toelettatura o bagno',
 }
 
+const editTitles: Record<HealthRecordType, string> = {
+  vaccination: 'Modifica vaccinazione',
+  prevention: 'Modifica antiparassitario',
+  deworming: 'Modifica sverminazione',
+  medication: 'Modifica terapia',
+  visit: 'Modifica visita',
+  weight: 'Modifica il peso',
+  grooming: 'Modifica toelettatura o bagno',
+}
+
 const monthOptions = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 const createId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
-export function HealthRecordDialog({ type, onClose }: { type: HealthRecordType; onClose: () => void }) {
-  const { addGrooming, addMedication, addPrevention, addVaccination, addVisit, addWeight } = useAppState()
-  const [name, setName] = useState('')
-  const [secondary, setSecondary] = useState('')
-  const [date, setDate] = useState(todayKey())
-  const [nextDate, setNextDate] = useState('')
-  const [expiryDate, setExpiryDate] = useState('')
-  const [lotNumber, setLotNumber] = useState('')
-  const [interval, setInterval] = useState(type === 'grooming' ? '0' : '30')
-  const [times, setTimes] = useState('08:00, 20:00')
-  const [seasonalPause, setSeasonalPause] = useState(false)
-  const [pauseStartMonth, setPauseStartMonth] = useState('11')
-  const [pauseEndMonth, setPauseEndMonth] = useState('2')
-  const [documents, setDocuments] = useState<PetDocument[]>([])
+export function HealthRecordDialog({ type, record, onClose }: { type: HealthRecordType; record?: HealthRecord; onClose: () => void }) {
+  const actions = useAppState()
+  const vaccination = type === 'vaccination' ? record as VaccinationRecord | undefined : undefined
+  const prevention = type === 'prevention' || type === 'deworming' ? record as PreventionRecord | undefined : undefined
+  const medication = type === 'medication' ? record as MedicationRecord | undefined : undefined
+  const visit = type === 'visit' ? record as VetVisitRecord | undefined : undefined
+  const weight = type === 'weight' ? record as WeightRecord | undefined : undefined
+  const grooming = type === 'grooming' ? record as GroomingRecord | undefined : undefined
+  const [name, setName] = useState(vaccination?.name ?? prevention?.product ?? medication?.name ?? visit?.title ?? weight?.value.toString() ?? grooming?.title ?? '')
+  const [secondary, setSecondary] = useState(vaccination?.notes ?? medication?.dose ?? visit?.notes ?? grooming?.notes ?? '')
+  const [date, setDate] = useState(vaccination?.administeredDate ?? prevention?.lastDate ?? medication?.startDate ?? visit?.date ?? weight?.date ?? grooming?.lastDate ?? todayKey())
+  const [nextDate, setNextDate] = useState(vaccination?.nextDate ?? medication?.endDate ?? '')
+  const [expiryDate, setExpiryDate] = useState(vaccination?.expiryDate ?? '')
+  const [lotNumber, setLotNumber] = useState(vaccination?.lotNumber ?? '')
+  const [interval, setInterval] = useState(String(prevention?.intervalDays ?? grooming?.intervalWeeks ?? (type === 'grooming' ? 0 : 30)))
+  const [times, setTimes] = useState(medication?.times.join(', ') ?? '08:00, 20:00')
+  const [active, setActive] = useState(medication?.active ?? true)
+  const [seasonalPause, setSeasonalPause] = useState(prevention?.seasonalPause ?? false)
+  const [pauseStartMonth, setPauseStartMonth] = useState(String(prevention?.pauseStartMonth ?? 11))
+  const [pauseEndMonth, setPauseEndMonth] = useState(String(prevention?.pauseEndMonth ?? 2))
+  const [documents, setDocuments] = useState<PetDocument[]>(record?.documents ?? [])
   const [fileError, setFileError] = useState('')
 
   const addFiles = async (files: FileList | null) => {
@@ -60,8 +80,12 @@ export function HealthRecordDialog({ type, onClose }: { type: HealthRecordType; 
 
   const submit = () => {
     if (!name.trim()) return
-    if (type === 'vaccination') addVaccination({ name, administeredDate: date, nextDate, lotNumber, expiryDate, notes: secondary, documents })
-    if (type === 'prevention' || type === 'deworming') addPrevention({
+    if (type === 'vaccination') {
+      const value = { name, administeredDate: date, nextDate, lotNumber, expiryDate, notes: secondary, documents }
+      record ? actions.updateVaccination({ ...value, id: record.id }) : actions.addVaccination(value)
+    }
+    if (type === 'prevention' || type === 'deworming') {
+      const value = {
       kind: type === 'deworming' ? 'Sverminazione' : 'Antiparassitari (pulci e zecche)',
       product: name,
       lastDate: date,
@@ -69,18 +93,32 @@ export function HealthRecordDialog({ type, onClose }: { type: HealthRecordType; 
       seasonalPause,
       ...(seasonalPause ? { pauseStartMonth: Number(pauseStartMonth), pauseEndMonth: Number(pauseEndMonth) } : {}),
       documents,
-    })
-    if (type === 'medication') addMedication({ name, dose: secondary, times: times.split(',').map((value) => value.trim()).filter(Boolean), startDate: date, endDate: nextDate, active: true, documents })
-    if (type === 'visit') addVisit({ title: name, date, notes: secondary, documents })
-    if (type === 'weight') addWeight({ value: Number(name), date, documents })
-    if (type === 'grooming') addGrooming({ title: name, lastDate: date, intervalWeeks: Number(interval) || 0, notes: secondary, documents })
+      }
+      record ? actions.updatePrevention({ ...value, id: record.id }) : actions.addPrevention(value)
+    }
+    if (type === 'medication') {
+      const value = { name, dose: secondary, times: times.split(',').map((value) => value.trim()).filter(Boolean), startDate: date, endDate: nextDate, active, documents }
+      record ? actions.updateMedication({ ...value, id: record.id }) : actions.addMedication(value)
+    }
+    if (type === 'visit') {
+      const value = { title: name, date, notes: secondary, documents }
+      record ? actions.updateVisit({ ...value, id: record.id }) : actions.addVisit(value)
+    }
+    if (type === 'weight') {
+      const value = { value: Number(name), date, documents }
+      record ? actions.updateWeight({ ...value, id: record.id }) : actions.addWeight(value)
+    }
+    if (type === 'grooming') {
+      const value = { title: name, lastDate: date, intervalWeeks: Number(interval) || 0, notes: secondary, documents }
+      record ? actions.updateGrooming({ ...value, id: record.id }) : actions.addGrooming(value)
+    }
     onClose()
   }
 
   const isPrevention = type === 'prevention' || type === 'deworming'
   const dateLabel = type === 'visit' ? 'Data appuntamento' : isPrevention ? 'Ultima somministrazione' : type === 'weight' ? 'Data misurazione' : type === 'medication' ? 'Inizio terapia' : type === 'grooming' ? 'Ultima volta' : 'Data somministrazione'
 
-  return <Modal title={titles[type]} onClose={onClose}>
+  return <Modal title={(record ? editTitles : addTitles)[type]} onClose={onClose}>
     <p className="form-intro">Inserisci e conferma tu ogni dato. Cuccia non interpreta documenti e non salva informazioni sanitarie automaticamente.</p>
     <div className="form-stack health-record-form">
       <label className="field"><span>{type === 'weight' ? 'Peso in kg' : isPrevention ? 'Prodotto' : type === 'visit' ? 'Motivo' : type === 'grooming' ? 'Cosa è stato fatto' : 'Nome'}</span><input type={type === 'weight' ? 'number' : 'text'} step={type === 'weight' ? '0.1' : undefined} value={name} onChange={(event) => setName(event.target.value)} autoFocus /></label>
@@ -88,7 +126,7 @@ export function HealthRecordDialog({ type, onClose }: { type: HealthRecordType; 
       <label className="field"><span>{dateLabel}</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
       {type === 'vaccination' && <><div className="form-grid two-columns"><label className="field"><span>Lotto</span><input value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} /></label><label className="field"><span>Scadenza prodotto</span><input type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} /></label></div><label className="field"><span>Prossimo richiamo</span><input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label></>}
       {isPrevention && <><label className="field"><span>Cadenza indicata</span><select value={interval} onChange={(event) => setInterval(event.target.value)}><option value="30">Ogni 30 giorni</option><option value="60">Ogni 60 giorni</option><option value="90">Ogni 90 giorni</option><option value="180">Ogni 6 mesi</option><option value="365">Ogni anno</option></select><small>Usa solo la cadenza indicata dal veterinario o dal prodotto.</small></label><label className="check-field"><input type="checkbox" checked={seasonalPause} onChange={(event) => setSeasonalPause(event.target.checked)} /><span>Pausa stagionale</span></label>{seasonalPause && <div className="form-grid two-columns"><label className="field"><span>Da</span><select value={pauseStartMonth} onChange={(event) => setPauseStartMonth(event.target.value)}>{monthOptions.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></label><label className="field"><span>A</span><select value={pauseEndMonth} onChange={(event) => setPauseEndMonth(event.target.value)}>{monthOptions.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></label></div>}</>}
-      {type === 'medication' && <><label className="field"><span>Fine terapia</span><input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label><label className="field"><span>Orari, separati da virgola</span><input value={times} onChange={(event) => setTimes(event.target.value)} /></label></>}
+      {type === 'medication' && <><label className="field"><span>Fine terapia</span><input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label><label className="field"><span>Orari, separati da virgola</span><input value={times} onChange={(event) => setTimes(event.target.value)} /></label><label className="check-field"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /><span>Terapia in corso</span></label></>}
       {type === 'grooming' && <label className="field"><span>Promemoria morbido <small>opzionale</small></span><select value={interval} onChange={(event) => setInterval(event.target.value)}><option value="0">Nessun promemoria</option><option value="2">Ogni ~2 settimane</option><option value="4">Ogni ~4 settimane</option><option value="6">Ogni ~6 settimane</option><option value="8">Ogni ~8 settimane</option></select></label>}
       <div className="record-documents"><strong>Documenti <small>opzionali</small></strong><label className="button-secondary"><FilePlus2 size={18} /> Allega foto o file<input type="file" multiple accept="image/*,.pdf" onChange={(event) => void addFiles(event.target.files)} /></label>{fileError && <p className="field-error">{fileError}</p>}{documents.map((document) => <span key={document.id}>{document.name}<button onClick={() => setDocuments((current) => current.filter((item) => item.id !== document.id))} aria-label={`Rimuovi ${document.name}`}><X size={15} /></button></span>)}</div>
     </div>
