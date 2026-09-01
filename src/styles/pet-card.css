@@ -114,18 +114,32 @@
 
 .pet-card-contact-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   margin-top: 18px;
 }
 
 .pet-card-contact-grid article {
-  min-height: 156px;
-  padding: 12px;
+  min-height: 132px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-content: center;
+  column-gap: 14px;
+  padding: 18px;
   border: 1px solid rgba(211, 194, 169, .62);
   border-radius: 20px;
   color: #66805d;
 }
+
+.pet-card-contact-grid article > svg {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  margin-top: 2px;
+}
+
+.pet-card-contact-grid article > span,
+.pet-card-contact-grid article > strong,
+.pet-card-contact-grid article > p { grid-column: 2; }
 
 .pet-card-contact-grid article:last-child {
   color: var(--clay);
@@ -151,8 +165,10 @@
 .pet-card-contact-grid p {
   margin: 5px 0 0;
   color: #776d62;
-  font-size: 16px;
+  font-size: clamp(14px, 4vw, 16px);
   line-height: 1.45;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .pet-card-info-list {
