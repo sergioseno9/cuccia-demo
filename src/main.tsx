@@ -30,6 +30,7 @@ import './styles/discover-pages.css'
 import './styles/discover-details.css'
 import './styles/path-screen.css'
 import './styles/pet-card.css'
+import './styles/profile-editor-page.css'
 import './styles/auth.css'
 
 createRoot(document.getElementById('root')!).render(

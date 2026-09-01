@@ -1,5 +1,4 @@
-import { CircleHelp, PawPrint, SlidersHorizontal, Trash2 } from 'lucide-react'
-import { conditionLabels, lifePhaseLabel, moduleLabels, trackedModuleIds } from '../lib/profile'
+import { CircleHelp, PawPrint, Trash2 } from 'lucide-react'
 import { useAppState } from '../state/AppState'
 import { BackupManager } from './BackupManager'
 import { CloudAccountPanel } from './CloudAccountPanel'
@@ -7,20 +6,12 @@ import { DataResetCard } from './DataResetCard'
 import { DocumentManager } from './DocumentManager'
 import { OutingScheduleEditor } from './OutingScheduleEditor'
 
-export function ProfileSettingsPanel({ focus, onEdit }: { focus?: string | null; onEdit: () => void }) {
+export function ProfileSettingsPanel({ focus }: { focus?: string | null }) {
   const { data, profile, removePet, restartTutorial } = useAppState()
   if (!profile) return null
-  const visibleModules = trackedModuleIds(profile.species).filter((module) => profile.trackedModules.includes(module))
 
   return <div className="settings-panel">
     <CloudAccountPanel />
-
-    <section className="settings-card tracking-summary">
-      <div className="settings-card-heading"><span className="settings-icon tone-sage"><SlidersHorizontal size={22} /></span><div><h2>Cosa seguo per {profile.name}</h2><p>{lifePhaseLabel(profile.lifePhase, profile.species)} · preferenze attive</p></div></div>
-      <div className="tracking-chip-list">{visibleModules.map((module) => <span key={module}>{moduleLabels[module]}</span>)}</div>
-      {profile.conditions.length > 0 && <p className="settings-summary-copy">{profile.conditions.map((condition) => conditionLabels[condition]).join(' · ')}</p>}
-      <button className="button-secondary" onClick={onEdit}>Modifica preferenze</button>
-    </section>
 
     <OutingScheduleEditor autoFocus={focus === 'outings'} />
     <DocumentManager />

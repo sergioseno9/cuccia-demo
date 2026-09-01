@@ -39,6 +39,7 @@ import { GuidesScreen } from './screens/GuidesScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { PathScreen } from './screens/PathScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { ProfileEditor } from './screens/ProfileEditor'
 import { QuizScreen } from './screens/QuizScreen'
 import { TrickScreen } from './screens/TrickScreen'
 import { useAppState } from './state/AppState'
@@ -54,13 +55,15 @@ function ScrollToTop() {
 
 function RoutedApp() {
   const { toast } = useAppState()
+  const location = useLocation()
+  const isProfileEditor = location.pathname === '/profilo/modifica'
 
   return (
     <div className="app-shell">
       <ScrollToTop />
-      <div className="app-frame">
-        <PetSwitcher />
-        <InAppOutingReminder />
+      <div className={`app-frame ${isProfileEditor ? 'is-profile-editor' : ''}`}>
+        {!isProfileEditor && <PetSwitcher />}
+        {!isProfileEditor && <InAppOutingReminder />}
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/diario" element={<DiaryScreen />} />
@@ -73,12 +76,13 @@ function RoutedApp() {
           <Route path="/scopri/trucco/:id" element={<TrickScreen />} />
           <Route path="/scopri/guida/:guideId" element={<GuideReaderScreen />} />
           <Route path="/profilo" element={<ProfileScreen />} />
+          <Route path="/profilo/modifica" element={<ProfileEditor />} />
           <Route path="/salute" element={<Navigate to="/cura" replace />} />
           <Route path="/guida" element={<Navigate to="/scopri" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <BottomNav />
-        <TutorialCoach />
+        {!isProfileEditor && <BottomNav />}
+        {!isProfileEditor && <TutorialCoach />}
       </div>
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status" aria-live="polite">
         <span><Check size={17} /></span>
