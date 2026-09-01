@@ -126,6 +126,15 @@ test('export, azzeramento e re-import restituiscono dati identici', () => {
   assert.deepEqual(restored, data)
 })
 
+test('rifiuta un backup futuro invece di importarlo perdendo campi', () => {
+  const future = JSON.parse(createBackupJson(createDemoData())) as Record<string, unknown>
+  future.version = 3
+  assert.throws(
+    () => parseBackupJson(JSON.stringify(future)),
+    /versione del backup non è supportata/i,
+  )
+})
+
 test('ogni scrittura conserva un backup locale recuperabile', () => {
   const storage = new MemoryStorage()
   const data = createDemoData()

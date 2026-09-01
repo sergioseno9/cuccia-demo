@@ -25,6 +25,9 @@ export const parseBackupJson = (json: string): AppData => {
   if (envelope.format !== 'cuccia-backup' || !envelope.data) {
     throw new Error('Questo file non è un backup Cuccia riconosciuto.')
   }
+  if (envelope.version !== 2) {
+    throw new Error('Questa versione del backup non è supportata. Aggiorna Cuccia prima di importarla.')
+  }
   return migrateAppData(envelope.data)
 }
 
