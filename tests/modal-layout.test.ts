@@ -21,3 +21,14 @@ test('il modale blocca lo sfondo e lascia scorrere solo il corpo', () => {
   assert.match(styles, /\.modal-backdrop[^}]*touch-action:\s*none/s)
   assert.match(styles, /\.modal-body[^}]*overflow-y:\s*auto/s)
 })
+
+test('il modale gestisce focus iniziale, trap, Escape e focus return', () => {
+  assert.match(modal, /ref=\{dialogRef\}/)
+  assert.match(modal, /tabIndex=\{-1\}/)
+  assert.match(modal, /focusableElements\(dialog\)\[0\][\s\S]*focus\(\{ preventScroll: true \}\)/)
+  assert.match(modal, /event\.key === 'Escape'[\s\S]*onClose\(\)/)
+  assert.match(modal, /event\.key !== 'Tab'/)
+  assert.match(modal, /event\.shiftKey[\s\S]*last\.focus/)
+  assert.match(modal, /document\.activeElement === last[\s\S]*first\.focus/)
+  assert.match(modal, /returnFocusRef\.current\?\.isConnected[\s\S]*returnFocusRef\.current\.focus/)
+})
