@@ -303,3 +303,36 @@ In ordine di gravità e con un test di regressione per commit:
 
 Tutti gli altri punti restano aperti perché richiedono Phase 2, backend/migration, una decisione
 di prodotto o un intervento visivo/architetturale non isolato.
+
+## 9. Esito dopo i fix minimi
+
+### Problemi corretti
+
+| Issue | Esito | Commit | Regressione coperta |
+| --- | --- | --- | --- |
+| `DBG-001` | **CORRETTO** | `531eacf` | logout/account non alimenta più la modalità guest; guest senza cache parte vuoto |
+| `DBG-002` | **CORRETTO** | `5c2e1f6` | orari malformati rifiutati; nessun promemoria fittizio alle 09:00; intervallo terapia rispettato |
+| `DBG-007` | **CORRETTO** | `ae646bf` | recupero dal salvataggio precedente quando stato corrente e backup automatico sono corrotti |
+| `DBG-008` | **CORRETTO** | `de70e63` | backup con versione futura non supportata rifiutato esplicitamente |
+| `DBG-009` | **CORRETTO** | `77b9d64` | lettore guide senza overflow orizzontale a 390 px |
+
+### Problemi ancora aperti
+
+- **Alti:** `DBG-003`–`DBG-006`; richiedono Phase 2, affidabilità cloud o una modifica del modello.
+- **Medi:** `DBG-010`–`DBG-014`; richiedono passate dedicate di accessibilità, modali, date,
+  persistenza o reset cloud.
+- **Bassi:** `DBG-015`–`DBG-018`; copia prodotto, performance, documentazione ed E2E.
+
+### Matrice finale
+
+- **PASS — unit/integration:** `npm test`, 50 test su 50.
+- **PASS — build produzione:** `npm run build`; resta il warning noto `DBG-016` sul chunk iniziale
+  da 673,37 kB (194,00 kB gzip).
+- **PASS — sicurezza repository:** `npm run security`.
+- **PASS — dipendenze:** `npm audit`, 0 vulnerabilità note.
+- **PASS — verifica browser guest:** rotte principali e Scopri; lettore guida verificato a
+  viewport mobile senza overflow orizzontale.
+- **BLOCCATO — DB locale/RLS:** `npm run test:db` non può partire perché Docker Desktop non è in
+  esecuzione; non è un fallimento dei test SQL. La suite contiene attualmente 35 assert pgTAP.
+- **BLOCCATO — cloud acceptance:** `npm run test:cloud` richiede Docker e credenziali test server
+  non presenti nel processo. Nessun test remoto o su device viene dichiarato come eseguito.
