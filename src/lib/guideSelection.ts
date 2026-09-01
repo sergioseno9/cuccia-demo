@@ -1,5 +1,6 @@
 import { getGuide } from '../data/guides'
 import { dayKey, todayKey } from './date'
+import { hasNeedsCondition } from './diaryActions'
 import type { PetData } from '../types'
 
 export const selectMomentGuide = (pet: PetData) => {
@@ -11,7 +12,7 @@ export const selectMomentGuide = (pet: PetData) => {
   }
 
   const todayEvents = pet.events.filter((event) => !event.deletedAt && dayKey(event.happenedAt) === todayKey())
-  if (profile.trackedModules.includes('needs') && todayEvents.filter((event) => event.type === 'pee').length >= 3) {
+  if (hasNeedsCondition(profile) && todayEvents.filter((event) => event.type === 'pee').length >= 3) {
     return getGuide('stop-pipi')!
   }
 

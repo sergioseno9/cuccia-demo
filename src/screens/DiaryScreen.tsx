@@ -1,11 +1,12 @@
-import { CalendarDays, ChevronDown, ChevronUp, Clock3, Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { CalendarDays, ChevronDown, ChevronUp, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { EventFormDialog } from '../components/EventFormDialog'
 import { CaregiverSwitch } from '../components/CaregiverSwitch'
 import { EventIcon } from '../components/EventIcon'
 import { Modal } from '../components/Modal'
 import { actionLabels } from '../data'
-import { accordionDayLabel, dayKey, relativeAgo, timeFormatter, todayKey } from '../lib/date'
+import { accordionDayLabel, dayKey, timeFormatter, todayKey } from '../lib/date'
+import { buildDiaryActions } from '../lib/diaryActions'
 import { useAppState } from '../state/AppState'
 import type { CareEvent, CareEventType } from '../types'
 
@@ -20,24 +21,14 @@ export function DiaryScreen() {
   const [editing, setEditing] = useState<CareEvent | null>(null)
   const [openDays, setOpenDays] = useState<Set<string>>(() => new Set([todayKey()]))
   if (!activePet || !profile) return null
-  const needsEnabled = profile.trackedModules.includes('needs')
-  const litterboxEnabled = profile.trackedModules.includes('litterbox')
-  const outingsEnabled = profile.species === 'cane' && profile.trackedModules.includes('outings')
   const hasActiveMedication = activePet.health.medications.some((record) => record.active)
-  const actions: CareEventType[] = [
-    ...(outingsEnabled ? ['walk' as const] : []), 'meal', 'note',
-    ...(hasActiveMedication ? ['medication' as const] : []),
-    ...(needsEnabled ? ['pee' as const, 'poop' as const] : []),
-    ...(litterboxEnabled ? ['litterbox' as const] : []),
-  ]
-  const dailyTypes: CareEventType[] = [...actions]
-  const visibleEvents = useMemo(() => activePet.events.filter((event) => !event.deletedAt && dailyTypes.includes(event.type)).sort((a, b) => b.happenedAt.localeCompare(a.happenedAt)), [activePet.events, dailyTypes])
-  const groups = useMemo(() => visibleEvents.reduce<Record<string, CareEvent[]>>((result, event) => {
+  const actions = buildDiaryActions(profile, hasActiveMedication)
+  const visibleEvents = activePet.events.filter((event) => !event.deletedAt && actions.includes(event.type)).sort((a, b) => b.happenedAt.localeCompare(a.happenedAt))
+  const groups = visibleEvents.reduce<Record<string, CareEvent[]>>((result, event) => {
     const key = dayKey(event.happenedAt)
     result[key] = [...(result[key] ?? []), event]
     return result
-  }, { [todayKey()]: [] }), [visibleEvents])
-  const latestWalk = visibleEvents.find((event) => event.type === 'walk')
+  }, { [todayKey()]: [] })
 
   const toggleDay = (date: string) => setOpenDays((current) => {
     const next = new Set(current)
@@ -55,8 +46,6 @@ export function DiaryScreen() {
       <header className="minimal-screen-header diary-header"><p className="eyebrow">Attività di oggi</p><h1>Diario</h1></header>
       <button id="tutorial-register" className="button-primary register-main-button" onClick={() => setPickerOpen(true)}><Plus size={24} /> Registra attività</button>
       <CaregiverSwitch />
-
-      {outingsEnabled && profile.outingIntervalHours && latestWalk && <div className="diary-soft-nudge"><Clock3 size={21} /><p>{profile.name} di solito esce ogni ~{profile.outingIntervalHours} h · ultima {relativeAgo(latestWalk.happenedAt)}. È solo il ritmo impostato da te.</p></div>}
 
       <div className="day-accordion">{Object.entries(groups).map(([date, events]) => {
         const isOpen = openDays.has(date)
